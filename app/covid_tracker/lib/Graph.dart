@@ -8,6 +8,7 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:covid_tracker/requests/FetchData.dart';
+import 'package:covid_tracker/globals.dart';
 
 class CovidGraph extends StatefulWidget {
   final bool animate;
@@ -86,21 +87,6 @@ class _CovidGraphState extends State<CovidGraph> {
       // specified, the default creates local date time.
       dateTimeFactory: const charts.LocalDateTimeFactory(),
     );
-  }
-
-  final TextStyle newStyle = TextStyle(
-      fontFamily: 'Roboto',
-      fontSize: 13.0,
-      letterSpacing: -0.12,
-      fontWeight: FontWeight.normal);
-
-  Widget getNothingScreen(String text) {
-    return Center(
-        child: Container(
-            child: Text(
-      text,
-      style: newStyle,
-    )));
   }
 
   @override

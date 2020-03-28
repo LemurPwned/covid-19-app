@@ -1,4 +1,6 @@
+import 'package:covid_tracker/widgets/MapWidget.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong/latlong.dart';
 
 enum TileType { SYSTEM, USER }
 Color myGreen = Color(0xff4bb17b);
@@ -13,8 +15,10 @@ class MessageTile {
   @required
   TileType type;
   List<String> choices;
+  LatLng marker;
 
-  MessageTile(this.text, this.username, this.time, this.type, {this.choices}) {}
+  MessageTile(this.text, this.username, this.time, this.type,
+      {this.choices, this.marker});
 
   String dateString() {
     return "${this.time.hour}:${this.time.minute}";
@@ -112,6 +116,19 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
     }
   }
 
+  Widget locationDirective(LatLng destination) {
+    print(destination);
+    if (destination != null) {
+      return SizedBox(
+          height: 120,
+          width: 300,
+    
+          child: MapWidget(destinationMarker: destination));
+    } else {
+      return SizedBox.shrink();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -161,7 +178,9 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
                 ),
               ],
             ),
-            askForChoice(currentMsgTile.choices)
+            SizedBox(height: 5),
+            askForChoice(currentMsgTile.choices),
+            locationDirective(currentMsgTile.marker)
           ],
         ));
   }

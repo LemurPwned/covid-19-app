@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:latlong/latlong.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -26,10 +27,18 @@ class _ChatScreenState extends State<ChatScreen> {
       "sneezing",
       "loss of smell"
     ];
-    var choiceMsg = new MessageTile("Pick what works best for you!", 'Robo',
-        DateTime.now(), TileType.SYSTEM,
+
+    var choiceMsg = new MessageTile(
+        "Pick symptoms that best describe how you feel!",
+        'Robo',
+        DateTime.now(),
+        TileType.SYSTEM,
         choices: choices);
+    var mapMsg = new MessageTile(
+        "Here's the nearest hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
+        marker: new LatLng(50.03, 19.57));
     messageTiles.add(choiceMsg);
+    messageTiles.add(mapMsg);
     super.initState();
   }
 

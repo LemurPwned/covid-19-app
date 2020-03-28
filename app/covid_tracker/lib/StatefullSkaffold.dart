@@ -1,15 +1,17 @@
 import 'package:covid_tracker/ChartWindow.dart';
 import 'package:covid_tracker/Graph.dart';
+import 'package:covid_tracker/widgets/MapWidget.dart';
 import 'package:flutter/material.dart';
 
 class MainScaffold extends StatefulWidget {
   @required
   final List<PageStorage> screens;
-  final List<String> names = ["Chat", "Charts"];
+  final List<String> names = ["Chat", "Charts", "Map"];
   MainScaffold()
       : screens = [
           PageStorage(child: ChatScreen(), bucket: PageStorageBucket()),
           PageStorage(child: CovidGraph(), bucket: PageStorageBucket()),
+          PageStorage(child: MapWidget(), bucket: PageStorageBucket()),
         ];
 
   @override
@@ -55,6 +57,7 @@ class MainScaffoldState extends State<MainScaffold> {
           BottomNavigationBarItem(icon: Icon(Icons.chat), title: Text("Chat")),
           BottomNavigationBarItem(
               icon: Icon(Icons.show_chart), title: Text("Chart")),
+          BottomNavigationBarItem(icon: Icon(Icons.map), title: Text("Map")),
         ]);
   }
 }
