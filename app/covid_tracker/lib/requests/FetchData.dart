@@ -4,18 +4,13 @@ import 'dart:convert';
 import 'dart:async';
 
 const String url = "https://corona.lmao.ninja/v2/historical/";
+const String countryUrl = "https://corona.lmao.ninja/countries/";
 
-class GraphData {
-  List<String> timelineDates;
-  List<int> timelineCases;
-  List<int> timelineDeaths;
-  String countryName;
-  GraphData(String country) {
-    timelineDates = new List();
-    timelineDeaths = new List();
-    timelineCases = new List();
-    this.countryName = country;
-  }
+class NamedSeries {
+  final String name;
+  final int value;
+
+  NamedSeries(this.name, this.value);
 }
 
 class CovidStat {
@@ -34,6 +29,33 @@ class CovidStat {
 }
 
 class DataFetcher {
+  static Future<List<NamedSeries>> fetchCountryCurrent(String country) async {
+    String properUrl = countryUrl + country;
+    final response = await http.get(properUrl);
+    if (response.statusCode == 200) {
+      var resBody = json.decode(response.body);
+      List<NamedSeries> nS = new List();
+
+      List<String> desiredKeys = [
+        'cases',
+        'todayCases',
+        'todayDeaths',
+        'recovered',
+        'active',
+        'critical'
+      ];
+
+      resBody.forEach((k, v) {
+        if (desiredKeys.contains(k)) {
+          nS.add(NamedSeries(k, v));
+        }
+      });
+      return nS;
+    } else {
+      throw Exception("Failed to fetch Historic data for $country");
+    }
+  }
+
   static Future<List<List<CovidStat>>> fetchCountryHistoric(
       String country) async {
     String properUrl = url + country;
