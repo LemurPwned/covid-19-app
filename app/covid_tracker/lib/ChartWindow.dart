@@ -1,25 +1,38 @@
+import 'package:covid_tracker/util/speaker.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
 
 class ChatScreen extends StatefulWidget {
+  SpeakFuncionality speaker;
+
+  ChatScreen(SpeakFuncionality flutterTts) {
+    speaker = flutterTts;
+  }
+
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _ChatScreenState createState() {
+    _ChatScreenState result = _ChatScreenState(speaker);
+    return result;
+  }
 }
 
 class _ChatScreenState extends State<ChatScreen> {
   List<MessageTile> messageTiles = new List();
-
   final msgField = TextEditingController();
+
+  SpeakFuncionality speaker;
+
+  _ChatScreenState(SpeakFuncionality flutterTts) {
+    speaker = flutterTts;
+  }
 
   @override
   void initState() {
-    // initialize root dir
-
     var initialMessage = new MessageTile(
-        "Hell! I'm here to help you!", 'Robo', DateTime.now(), TileType.SYSTEM);
+        "Hello! I'm here to help you!", 'Robo', DateTime.now(),
+        TileType.SYSTEM);
     messageTiles.add(initialMessage);
-
     List<String> choices = [
       "headache",
       "fever",
@@ -48,12 +61,19 @@ class _ChatScreenState extends State<ChatScreen> {
     var msg = MessageTile(msgText, 'user', new DateTime.now(), TileType.USER);
     setState(() {
       messageTiles.add(msg);
+      speaker.CustomSpeak(msg.text);
       msgField.clear();
     });
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    speaker.CustomSpeak("Let's talk about your health.");
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(

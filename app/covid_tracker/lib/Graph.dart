@@ -6,22 +6,28 @@
 /// drawing points with the "includePoints" option, but those points will share
 /// the same color as the line.
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:covid_tracker/util/speaker.dart';
 import 'package:flutter/material.dart';
 import 'package:covid_tracker/requests/FetchData.dart';
 import 'package:covid_tracker/globals.dart';
 
 class CovidGraph extends StatefulWidget {
   final bool animate;
+  SpeakFuncionality speaker;
 
-  CovidGraph({this.animate});
+  CovidGraph(SpeakFuncionality sf, {this.animate}) : speaker = sf;
 
   @override
-  _CovidGraphState createState() => _CovidGraphState();
+  _CovidGraphState createState() => _CovidGraphState(speaker);
 }
 
 class _CovidGraphState extends State<CovidGraph> {
   List<charts.Series> seriesList;
   Future<List<List<CovidStat>>> covidStats;
+  final SpeakFuncionality Speaker;
+
+  _CovidGraphState(SpeakFuncionality speaker) : Speaker = speaker;
+
   void updateLatestData() async {
     covidStats = DataFetcher.fetchCountryHistoric("Poland");
   }
@@ -91,6 +97,7 @@ class _CovidGraphState extends State<CovidGraph> {
 
   @override
   Widget build(BuildContext context) {
+    Speaker.CustomSpeak("Let's see some charts.");
     return Scaffold(
       body: FutureBuilder(
           future: covidStats,

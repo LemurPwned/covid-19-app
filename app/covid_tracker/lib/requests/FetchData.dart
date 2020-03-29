@@ -54,6 +54,4 @@ class DataFetcher {
       throw Exception("Failed to fetch Historic data for $country");
     }
   }
-
-
 }

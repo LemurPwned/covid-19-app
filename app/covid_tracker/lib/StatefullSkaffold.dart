@@ -1,18 +1,25 @@
 import 'package:covid_tracker/ChartWindow.dart';
 import 'package:covid_tracker/Graph.dart';
+import 'package:covid_tracker/util/speaker.dart';
 import 'package:covid_tracker/widgets/MapWidget.dart';
 import 'package:flutter/material.dart';
 
+
 class MainScaffold extends StatefulWidget {
   @required
-  final List<PageStorage> screens;
+  List<PageStorage> screens;
   final List<String> names = ["Chat", "Charts", "Map"];
-  MainScaffold()
-      : screens = [
-          PageStorage(child: ChatScreen(), bucket: PageStorageBucket()),
-          PageStorage(child: CovidGraph(), bucket: PageStorageBucket()),
-          PageStorage(child: MapWidget(), bucket: PageStorageBucket()),
-        ];
+  SpeakFuncionality speaker;
+
+  MainScaffold() {
+    speaker = Speaker.getInstance();
+
+    screens = [
+      PageStorage(child: ChatScreen(speaker), bucket: PageStorageBucket()),
+      PageStorage(child: CovidGraph(speaker), bucket: PageStorageBucket()),
+      PageStorage(child: MapWidget(), bucket: PageStorageBucket()),
+    ];
+  }
 
   @override
   MainScaffoldState createState() {
