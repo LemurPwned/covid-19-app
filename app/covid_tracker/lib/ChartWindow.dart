@@ -1,25 +1,40 @@
+import 'package:covid_tracker/util/speaker.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
 
 class ChatScreen extends StatefulWidget {
+  ChatScreen() {}
+  int speakerCursor = 0;
+
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _ChatScreenState createState() {
+    _ChatScreenState result = _ChatScreenState();
+    return result;
+  }
+
+  void onLoad(List<MessageTile> list) async {
+    Speaker speaker = Speaker.getInstance();
+
+    if (list.length != speakerCursor)
+      speaker.CustomSpeak(list.first.text);
+    else
+      await speaker.CustomSpeak(list.last.text);
+  }
 }
 
 class _ChatScreenState extends State<ChatScreen> {
   List<MessageTile> messageTiles = new List();
-
   final msgField = TextEditingController();
 
   @override
   void initState() {
-    // initialize root dir
-
     var initialMessage = new MessageTile(
-        "Hell! I'm here to help you!", 'Robo', DateTime.now(), TileType.SYSTEM);
+        "Hello! My name in Covidella. I'm here to help you!",
+        'Robo',
+        DateTime.now(),
+        TileType.SYSTEM);
     messageTiles.add(initialMessage);
-
     List<String> choices = [
       "headache",
       "fever",
@@ -37,9 +52,15 @@ class _ChatScreenState extends State<ChatScreen> {
     var mapMsg = new MessageTile(
         "Here's the nearest hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
         marker: new LatLng(50.03, 19.57));
+
+    var mapMsg2 = new MessageTile(
+        "Here's another hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
+        marker: new LatLng(50.07, 19.60));
     messageTiles.add(choiceMsg);
     messageTiles.add(mapMsg);
+    messageTiles.add(mapMsg2);
     super.initState();
+    widget.onLoad(messageTiles);
   }
 
   void responseInteraction() {
@@ -53,8 +74,13 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    Scaffold res = Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: <Widget>[
@@ -120,5 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+
+    return res;
   }
 }

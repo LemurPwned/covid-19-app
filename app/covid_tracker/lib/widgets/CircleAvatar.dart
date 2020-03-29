@@ -1,4 +1,6 @@
 import 'package:covid_tracker/widgets/MapWidget.dart';
+import 'package:covid_tracker/util/speaker.dart';
+
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
 
@@ -79,6 +81,7 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
   void initState() {
     // initialize root dir
     currentMsgTile = this.widget.msgTile;
+    // Speaker.getInstance().CustomSpeak(currentMsgTile.text)
     super.initState();
   }
 
@@ -117,12 +120,10 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
   }
 
   Widget locationDirective(LatLng destination) {
-    print(destination);
     if (destination != null) {
       return SizedBox(
           height: 120,
           width: 300,
-    
           child: MapWidget(destinationMarker: destination));
     } else {
       return SizedBox.shrink();
@@ -159,11 +160,20 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
                           bottomRight: Radius.circular(25),
                         ),
                       ),
-                      child: Text(
-                        currentMsgTile.text,
-                        style: Theme.of(context).textTheme.body1.apply(
-                              color: Colors.black87,
-                            ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            currentMsgTile.text,
+                            style: Theme.of(context).textTheme.body1.apply(
+                                  color: Colors.black87,
+                                ),
+                          ),
+                          SizedBox(
+                            height: 15,
+                          ),
+                          locationDirective(currentMsgTile.marker)
+                        ],
                       ),
                     ),
                   ],
@@ -180,7 +190,6 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
             ),
             SizedBox(height: 5),
             askForChoice(currentMsgTile.choices),
-            locationDirective(currentMsgTile.marker)
           ],
         ));
   }

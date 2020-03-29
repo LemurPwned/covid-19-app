@@ -6,6 +6,7 @@
 /// drawing points with the "includePoints" option, but those points will share
 /// the same color as the line.
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:covid_tracker/util/speaker.dart';
 import 'package:flutter/material.dart';
 import 'package:covid_tracker/requests/FetchData.dart';
 import 'package:covid_tracker/globals.dart';
@@ -22,8 +23,15 @@ class CovidGraph extends StatefulWidget {
 class _CovidGraphState extends State<CovidGraph> {
   List<charts.Series> seriesList;
   Future<List<List<CovidStat>>> covidStats;
+  Future<List<NamedSeries>> covidSummary;
+
+  final String country = "Poland";
+
+  _CovidGraphState();
+
   void updateLatestData() async {
-    covidStats = DataFetcher.fetchCountryHistoric("Poland");
+    covidStats = DataFetcher.fetchCountryHistoric(country);
+    covidSummary = DataFetcher.fetchCountryCurrent(country);
   }
 
   void buildSeriesList(List<List<CovidStat>> data) {
@@ -62,12 +70,51 @@ class _CovidGraphState extends State<CovidGraph> {
     return [casesList, deathsList];
   }
 
-  Widget generateWidget(List<List<CovidStat>> data) {
-    seriesList = constructSeriesFromData(data);
-    return buildChart(seriesList);
+  List<charts.Series<NamedSeries, String>> constructHistogramData(
+      List<NamedSeries> data) {
+    return [
+      new charts.Series<NamedSeries, String>(
+        id: 'Summary',
+        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
+        domainFn: (NamedSeries obj, _) => obj.name,
+        measureFn: (NamedSeries obj, _) => obj.value,
+        data: data,
+      )
+    ];
   }
 
-  Widget buildChart(List<charts.Series> seriesList) {
+  Widget pieChartBuilder() {
+    return FutureBuilder(
+        future: covidSummary,
+        builder:
+            (BuildContext context, AsyncSnapshot<List<NamedSeries>> snapshot) {
+          if (!snapshot.hasData) return getNothingScreen("Loading a pie chart");
+          return SizedBox(
+              height: 300,
+              width: 300,
+              child: charts.BarChart(
+                constructHistogramData(snapshot.data),
+                animate: true,
+              ));
+        });
+  }
+
+  Widget timeSeriesBuilder() {
+    return FutureBuilder(
+        future: covidStats,
+        builder: (BuildContext context,
+            AsyncSnapshot<List<List<CovidStat>>> snapshot) {
+          if (!snapshot.hasData)
+            return getNothingScreen("Loading a time series!");
+          return SizedBox(
+              width: 300,
+              height: 300,
+              child: buildTimeSeriesChart(snapshot.data));
+        });
+  }
+
+  Widget buildTimeSeriesChart(List<List<CovidStat>> data) {
+    seriesList = constructSeriesFromData(data);
     return new charts.TimeSeriesChart(
       seriesList,
       animate: true,
@@ -89,16 +136,19 @@ class _CovidGraphState extends State<CovidGraph> {
     );
   }
 
+  Widget buildStatisticsView() {
+    return ListView(children: <Widget>[
+      pieChartBuilder(),
+      SizedBox(height: 30),
+      timeSeriesBuilder()
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Speaker.getInstance().CustomSpeak("Let's see some charts.");
     return Scaffold(
-      body: FutureBuilder(
-          future: covidStats,
-          builder: (BuildContext context,
-              AsyncSnapshot<List<List<CovidStat>>> snapshot) {
-            if (!snapshot.hasData) return getNothingScreen("Loading");
-            return generateWidget(snapshot.data);
-          }),
+      body: buildStatisticsView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => updateLatestData(),
         child: Icon(Icons.refresh),
