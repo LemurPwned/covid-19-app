@@ -18,9 +18,11 @@ class MapWidget extends StatefulWidget {
 class MapWidgetState extends State<MapWidget> {
   // Krakow
   LatLng currentLocation = new LatLng(50.03, 19.56);
+  LatLngBounds globalBounds;
   Placemark currentPlace;
   Future<Position> position;
   final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
+  final MapController mapController = MapController();
 
   Future<Position> getCurrentLocation() async {
     Position pos = await geolocator.getCurrentPosition(
@@ -44,6 +46,7 @@ class MapWidgetState extends State<MapWidget> {
 
   Widget getFlutterMap(Position position) {
     currentLocation = new LatLng(position.latitude, position.longitude);
+    LatLngBounds bounds;
     List<Marker> markerList = [
       new Marker(
         width: 80.0,
@@ -65,7 +68,19 @@ class MapWidgetState extends State<MapWidget> {
           ),
         ),
       );
+
+      // also calculate zoom
+      bounds = LatLngBounds.fromPoints(
+          [currentLocation, this.widget.destinationMarker]);
+    } else {
+      bounds = LatLngBounds.fromPoints([currentLocation]);
     }
+    mapController.onReady.then((result) {
+      if (bounds != null) {
+        mapController.fitBounds(bounds);
+      }
+    });
+
     return FlutterMap(
       options: new MapOptions(
         center: currentLocation,
@@ -75,10 +90,9 @@ class MapWidgetState extends State<MapWidget> {
         new TileLayerOptions(
             urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             subdomains: ['a', 'b', 'c']),
-        new MarkerLayerOptions(
-          markers: markerList,
-        ),
+        new MarkerLayerOptions(markers: markerList),
       ],
+      mapController: mapController,
     );
   }
 

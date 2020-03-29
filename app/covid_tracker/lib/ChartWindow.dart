@@ -17,9 +17,6 @@ class ChatScreen extends StatefulWidget {
     Speaker speaker = Speaker.getInstance();
 
     if (list.length != speakerCursor)
-//      for (speakerCursor; speakerCursor <= list.length; speakerCursor++) {
-//        await speaker.CustomSpeak(list[speakerCursor].text);
-//      }
       speaker.CustomSpeak(list.first.text);
     else
       await speaker.CustomSpeak(list.last.text);
@@ -30,12 +27,13 @@ class _ChatScreenState extends State<ChatScreen> {
   List<MessageTile> messageTiles = new List();
   final msgField = TextEditingController();
 
-  _ChatScreenState() {}
-
   @override
   void initState() {
-    var initialMessage = new MessageTile("Hello! My name in Covidella. I'm here to help you!", 'Robo',
-        DateTime.now(), TileType.SYSTEM);
+    var initialMessage = new MessageTile(
+        "Hello! My name in Covidella. I'm here to help you!",
+        'Robo',
+        DateTime.now(),
+        TileType.SYSTEM);
     messageTiles.add(initialMessage);
     List<String> choices = [
       "headache",
@@ -54,8 +52,13 @@ class _ChatScreenState extends State<ChatScreen> {
     var mapMsg = new MessageTile(
         "Here's the nearest hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
         marker: new LatLng(50.03, 19.57));
+
+    var mapMsg2 = new MessageTile(
+        "Here's another hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
+        marker: new LatLng(50.07, 19.60));
     messageTiles.add(choiceMsg);
     messageTiles.add(mapMsg);
+    messageTiles.add(mapMsg2);
     super.initState();
     widget.onLoad(messageTiles);
   }
