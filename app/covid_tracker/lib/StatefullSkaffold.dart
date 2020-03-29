@@ -9,14 +9,13 @@ class MainScaffold extends StatefulWidget {
   @required
   List<PageStorage> screens;
   final List<String> names = ["Chat", "Charts", "Map"];
-  SpeakFuncionality speaker;
 
   MainScaffold() {
-    speaker = Speaker.getInstance();
+    Speaker.getInstance();
 
     screens = [
-      PageStorage(child: ChatScreen(speaker), bucket: PageStorageBucket()),
-      PageStorage(child: CovidGraph(speaker), bucket: PageStorageBucket()),
+      PageStorage(child: ChatScreen(), bucket: PageStorageBucket()),
+      PageStorage(child: CovidGraph(), bucket: PageStorageBucket()),
       PageStorage(child: MapWidget(), bucket: PageStorageBucket()),
     ];
   }

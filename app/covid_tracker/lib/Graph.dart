@@ -13,20 +13,18 @@ import 'package:covid_tracker/globals.dart';
 
 class CovidGraph extends StatefulWidget {
   final bool animate;
-  SpeakFuncionality speaker;
 
-  CovidGraph(SpeakFuncionality sf, {this.animate}) : speaker = sf;
+  CovidGraph({this.animate});
 
   @override
-  _CovidGraphState createState() => _CovidGraphState(speaker);
+  _CovidGraphState createState() => _CovidGraphState();
 }
 
 class _CovidGraphState extends State<CovidGraph> {
   List<charts.Series> seriesList;
   Future<List<List<CovidStat>>> covidStats;
-  final SpeakFuncionality Speaker;
 
-  _CovidGraphState(SpeakFuncionality speaker) : Speaker = speaker;
+  _CovidGraphState();
 
   void updateLatestData() async {
     covidStats = DataFetcher.fetchCountryHistoric("Poland");
@@ -97,7 +95,7 @@ class _CovidGraphState extends State<CovidGraph> {
 
   @override
   Widget build(BuildContext context) {
-    Speaker.CustomSpeak("Let's see some charts.");
+    Speaker.getInstance().CustomSpeak("Let's see some charts.");
     return Scaffold(
       body: FutureBuilder(
           future: covidStats,

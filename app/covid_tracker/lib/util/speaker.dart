@@ -2,19 +2,15 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'dart:async';
 import 'package:disposables/disposables.dart';
 
-abstract class SpeakFuncionality {
-  Future CustomSpeak(String text);
-}
-
-class Speaker implements Disposable, SpeakFuncionality {
+class Speaker implements Disposable {
   final String language = "en-US";
-  final String voiceCode = "en-us-x-sfg#male_1-local";
+  final String voiceCode = "en-us-x-sfg#female_2-local";
 
   static Speaker instance;
 
   Speaker() {
     speaker = new FlutterTts();
-    _configureLanguage(language, voiceCode);
+    configureSpeaker(language, voiceCode);
   }
 
   static Speaker getInstance() {
@@ -24,6 +20,11 @@ class Speaker implements Disposable, SpeakFuncionality {
     return instance;
   }
 
+  configureSpeaker(language, voiceCode) async {
+    await _configureLanguage(language, voiceCode);
+    print("Configured speaker, language: ${language}, voice: ${voiceCode}");
+  }
+
   @override
   void dispose() {
     speaker.stop();
@@ -31,9 +32,9 @@ class Speaker implements Disposable, SpeakFuncionality {
 
   FlutterTts speaker;
 
-  @override
   Future CustomSpeak(String text) async {
     if (text != null && text.isNotEmpty) {
+      await new Future.delayed(const Duration(milliseconds : 600));
       var result = await speaker.speak(text);
     }
   }

@@ -4,16 +4,25 @@ import 'package:latlong/latlong.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
 
 class ChatScreen extends StatefulWidget {
-  SpeakFuncionality speaker;
-
-  ChatScreen(SpeakFuncionality flutterTts) {
-    speaker = flutterTts;
-  }
+  ChatScreen() {}
+  int speakerCursor = 0;
 
   @override
   _ChatScreenState createState() {
-    _ChatScreenState result = _ChatScreenState(speaker);
+    _ChatScreenState result = _ChatScreenState();
     return result;
+  }
+
+  void onLoad(List<MessageTile> list) async {
+    Speaker speaker = Speaker.getInstance();
+
+    if (list.length != speakerCursor)
+//      for (speakerCursor; speakerCursor <= list.length; speakerCursor++) {
+//        await speaker.CustomSpeak(list[speakerCursor].text);
+//      }
+      speaker.CustomSpeak(list.first.text);
+    else
+      await speaker.CustomSpeak(list.last.text);
   }
 }
 
@@ -21,17 +30,12 @@ class _ChatScreenState extends State<ChatScreen> {
   List<MessageTile> messageTiles = new List();
   final msgField = TextEditingController();
 
-  SpeakFuncionality speaker;
-
-  _ChatScreenState(SpeakFuncionality flutterTts) {
-    speaker = flutterTts;
-  }
+  _ChatScreenState() {}
 
   @override
   void initState() {
-    var initialMessage = new MessageTile(
-        "Hello! I'm here to help you!", 'Robo', DateTime.now(),
-        TileType.SYSTEM);
+    var initialMessage = new MessageTile("Hello! My name in Covidella. I'm here to help you!", 'Robo',
+        DateTime.now(), TileType.SYSTEM);
     messageTiles.add(initialMessage);
     List<String> choices = [
       "headache",
@@ -53,6 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
     messageTiles.add(choiceMsg);
     messageTiles.add(mapMsg);
     super.initState();
+    widget.onLoad(messageTiles);
   }
 
   void responseInteraction() {
@@ -61,7 +66,6 @@ class _ChatScreenState extends State<ChatScreen> {
     var msg = MessageTile(msgText, 'user', new DateTime.now(), TileType.USER);
     setState(() {
       messageTiles.add(msg);
-      speaker.CustomSpeak(msg.text);
       msgField.clear();
     });
   }
@@ -73,8 +77,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    speaker.CustomSpeak("Let's talk about your health.");
-    return Scaffold(
+    Scaffold res = Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: <Widget>[
@@ -140,5 +143,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+
+    return res;
   }
 }
