@@ -1,6 +1,4 @@
-
 import 'package:flutter/material.dart';
-
 import 'StatefullSkaffold.dart';
 
 void main() => runApp(MyApp());
@@ -47,9 +45,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
-
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -59,6 +54,5 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return MainScaffold();
-
   }
 }
