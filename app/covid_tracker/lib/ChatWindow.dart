@@ -2,6 +2,7 @@ import 'package:covid_tracker/util/speaker.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
+import 'package:flutter_dialogflow/dialogflow_v2.dart';
 
 class ChatScreen extends StatefulWidget {
   ChatScreen() {}
@@ -25,7 +26,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   List<MessageTile> messageTiles = new List();
-  final msgField = TextEditingController();
+  final _textController = TextEditingController();
 
   @override
   void initState() {
@@ -65,12 +66,36 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void responseInteraction() {
     /// create a new Message
-    var msgText = msgField.text;
-    var msg = MessageTile(msgText, 'user', new DateTime.now(), TileType.USER);
+    var msgText = _textController.text;
+    _submitQuery(msgText);
+  }
+
+  void agentResponse(query) async {
+    _textController.clear();
+    AuthGoogle authGoogle =
+    await AuthGoogle(fileJson: "assets/valued-torch-276019-6e8cd0e1a520.json").build();
+    Dialogflow dialogFlow =
+    Dialogflow(authGoogle: authGoogle, language: Language.english);
+    AIResponse response = await dialogFlow.detectIntent(query);
+    MessageTile message = new MessageTile(
+        response.getMessage(),
+        'Robo',
+        DateTime.now(),
+        TileType.SYSTEM);
+
     setState(() {
-      messageTiles.add(msg);
-      msgField.clear();
+      messageTiles.add( message);
     });
+  }
+
+  void _submitQuery(String text) {
+    _textController.clear();
+    var message = new MessageTile(text, 'user', new DateTime.now(), TileType.USER);
+    setState(() {
+      messageTiles.add(message);
+      _textController.clear();
+    });
+    agentResponse(text);
   }
 
   @override
@@ -122,7 +147,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               SizedBox(width: 15),
                               Expanded(
                                 child: TextField(
-                                  controller: msgField,
+                                  controller: _textController,
                                   decoration: InputDecoration(
                                       hintText: "Type Something...",
                                       border: InputBorder.none),
