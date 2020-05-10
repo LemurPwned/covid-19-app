@@ -28,7 +28,7 @@
 .packages
 .pub-cache/
 .pub/
-/build/
+app/covid_tracker/build/
 
 # Web related
 lib/generated_plugin_registrant.dart
