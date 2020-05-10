@@ -47,7 +47,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/valued-torch-276019-6e8cd0e1a520.json
+    - assets/
   # To add assets to your application, add an assets section, like this:
   # assets:
   #  - images/a_dot_burr.jpeg

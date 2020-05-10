@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
 import 'package:flutter_dialogflow/dialogflow_v2.dart';
+import 'package:covid_tracker/util/LastBotValidResponse.dart';
 
 class ChatScreen extends StatefulWidget {
   ChatScreen() {}
   int speakerCursor = 0;
+  int risk = 0;
 
   @override
   _ChatScreenState createState() {
@@ -25,77 +27,123 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  List<MessageTile> messageTiles = new List();
+  List<MessageTile> _messageTiles = new List();
   final _textController = TextEditingController();
+  Speaker _speaker = Speaker.getInstance();
+  int stateMachineStep = 0;
+  LastBotValidResponse _lastValidResponse = null;
 
   @override
   void initState() {
-    var initialMessage = new MessageTile(
-        "Hello! My name in Covidella. I'm here to help you!",
-        'Robo',
-        DateTime.now(),
-        TileType.SYSTEM);
-    messageTiles.add(initialMessage);
-    List<String> choices = [
-      "headache",
-      "fever",
-      "short-breath",
-      "sneezing",
-      "loss of smell"
-    ];
+    var initMsg = "Hello! My name in Covidella. I'm here to help you!";
+    var initialMessage =
+        new MessageTile(initMsg, 'Robo', DateTime.now(), TileType.SYSTEM);
+    _messageTiles.add(initialMessage);
 
-    var choiceMsg = new MessageTile(
-        "Pick symptoms that best describe how you feel!",
-        'Robo',
-        DateTime.now(),
-        TileType.SYSTEM,
-        choices: choices);
-    var mapMsg = new MessageTile(
-        "Here's the nearest hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
-        marker: new LatLng(50.03, 19.57));
+    _lastValidResponse = new LastBotValidResponse(0, initMsg);
 
-    var mapMsg2 = new MessageTile(
-        "Here's another hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
-        marker: new LatLng(50.07, 19.60));
-    messageTiles.add(choiceMsg);
-    messageTiles.add(mapMsg);
-    messageTiles.add(mapMsg2);
+//    var mapMsg = new MessageTile(
+//        "Here's the nearest hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
+//        marker: new LatLng(50.03, 19.57));
+//
+//    var mapMsg2 = new MessageTile(
+//        "Here's another hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
+//        marker: new LatLng(50.07, 19.60));
+//    messageTiles.add(choiceMsg);
+//    messageTiles.add(mapMsg);
+//    messageTiles.add(mapMsg2);
     super.initState();
-    widget.onLoad(messageTiles);
+    widget.onLoad(_messageTiles);
   }
 
   void responseInteraction() {
-    /// create a new Message
     var msgText = _textController.text;
-    _submitQuery(msgText);
+    if (msgText.isNotEmpty) _submitQuery(msgText);
   }
 
   void agentResponse(query) async {
     _textController.clear();
-    AuthGoogle authGoogle =
-    await AuthGoogle(fileJson: "assets/valued-torch-276019-6e8cd0e1a520.json").build();
-    Dialogflow dialogFlow =
-    Dialogflow(authGoogle: authGoogle, language: Language.english);
-    AIResponse response = await dialogFlow.detectIntent(query);
+    String responseMessage = "";
+    try {
+      AuthGoogle authGoogle =
+          await AuthGoogle(fileJson: "assets/newagent-jqwvxl-2cd321decf71.json")
+              .build();
+      Dialogflow dialogFlow =
+          Dialogflow(authGoogle: authGoogle, language: Language.english);
+      AIResponse response = await dialogFlow.detectIntent(query);
+
+      var responseCode = response.getResponseCode;
+
+      switch (responseCode) {
+        case 200:
+          {
+            responseMessage = response.getMessage();
+            ParseValidResponse(responseMessage);
+            break;
+          }
+        case 400:
+          {
+            responseMessage =
+                "Invalid configuration using this application. Contact me to solve this issue";
+            break;
+          }
+        case 500:
+          {
+            responseMessage = "Backend server is unavailable. Try again later.";
+            break;
+          }
+      }
+    } on Exception catch (_) {
+      print(
+          'Exception during authentication to Google Cloud and DialogFlow was thrown');
+      responseMessage = "Unexpected error occured. Please contact me on email";
+    }
+
+    await _speaker.CustomSpeak(responseMessage);
+
     MessageTile message = new MessageTile(
-        response.getMessage(),
-        'Robo',
-        DateTime.now(),
-        TileType.SYSTEM);
+        responseMessage, 'Robo', DateTime.now(), TileType.SYSTEM);
 
     setState(() {
-      messageTiles.add( message);
+      _messageTiles.add(message);
     });
   }
 
   void _submitQuery(String text) {
     _textController.clear();
-    var message = new MessageTile(text, 'user', new DateTime.now(), TileType.USER);
+    var message =
+        new MessageTile(text, 'user', new DateTime.now(), TileType.USER);
     setState(() {
-      messageTiles.add(message);
+      _messageTiles.add(message);
       _textController.clear();
     });
     agentResponse(text);
+  }
+
+  void ParseValidResponse(String response) {
+    String keyword = "symptoms";
+    switch (keyword) {
+      case "symptoms":
+        {
+          List<String> choices = [
+            "headache",
+            "fever",
+            "short-breath",
+            "sneezing",
+            "loss of smell"
+          ];
+
+          var choiceMsg = new MessageTile(
+              "Pick symptoms that best describe how you feel!",
+              'Robo',
+              DateTime.now(),
+              TileType.SYSTEM,
+              choices: choices);
+
+          _messageTiles.add(choiceMsg);
+          break;
+        }
+    }
   }
 
   @override
@@ -115,12 +163,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(15),
-                    itemCount: messageTiles.length,
+                    itemCount: _messageTiles.length,
                     itemBuilder: (ctx, i) {
-                      if (messageTiles[i].type == TileType.SYSTEM) {
-                        return ReceivedMessagesWidget(msgTile: messageTiles[i]);
+                      if (_messageTiles[i].type == TileType.SYSTEM) {
+                        return ReceivedMessagesWidget(
+                            msgTile: _messageTiles[i]);
                       } else {
-                        return SentMessageWidget(msgTile: messageTiles[i]);
+                        return SentMessageWidget(msgTile: _messageTiles[i]);
                       }
                     },
                   ),
