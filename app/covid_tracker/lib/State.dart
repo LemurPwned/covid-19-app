@@ -1,4 +1,3 @@
-
 enum StateType { LOCATION, MULTICHOICE, TEXT, TWITTER }
 
 class UserInput {
@@ -9,8 +8,9 @@ class UserInput {
 
   Map<String, dynamic> toJson() => {'message': message, 'choices': choices};
 
-  UserInput.fromJson(Map<String, dynamic> json):
-    message = json['message'], choices = json['choices']
+  UserInput.fromJson(Map<String, dynamic> json)
+      : message = json['message'],
+        choices = json['choices'];
 }
 
 class MobileState {
