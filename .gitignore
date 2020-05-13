@@ -38,3 +38,4 @@ lib/generated_plugin_registrant.dart
 .secret.sh
 app/covid_tracker/assets/
 backend-server/cloud-backend/node_modules/
+backend-server/cloud-backend/credentials/
