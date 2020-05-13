@@ -1,8 +1,5 @@
 import 'package:covid_tracker/widgets/MapWidget.dart';
-import 'package:covid_tracker/util/speaker.dart';
 import 'package:covid_tracker/widgets/TwitterView.dart';
-import 'package:tweet_ui/models/api/tweet.dart';
-import 'package:tweet_ui/tweet_ui.dart';
 
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
