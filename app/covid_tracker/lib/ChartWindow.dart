@@ -4,8 +4,7 @@ import 'package:latlong/latlong.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
 
 class ChatScreen extends StatefulWidget {
-  ChatScreen() {}
-  int speakerCursor = 0;
+  final int speakerCursor = 0;
 
   @override
   _ChatScreenState createState() {
@@ -33,7 +32,8 @@ class _ChatScreenState extends State<ChatScreen> {
         "Hello! My name in Covidella. I'm here to help you!",
         'Robo',
         DateTime.now(),
-        TileType.SYSTEM);
+        TileType.SYSTEM,
+        tweet: false);
     messageTiles.add(initialMessage);
     List<String> choices = [
       "headache",
@@ -48,17 +48,23 @@ class _ChatScreenState extends State<ChatScreen> {
         'Robo',
         DateTime.now(),
         TileType.SYSTEM,
-        choices: choices);
+        choices: choices,
+        tweet: false);
     var mapMsg = new MessageTile(
         "Here's the nearest hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
-        marker: new LatLng(50.03, 19.57));
+        marker: new LatLng(50.03, 19.57),
+        tweet: false);
 
     var mapMsg2 = new MessageTile(
         "Here's another hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
-        marker: new LatLng(50.07, 19.60));
-    messageTiles.add(choiceMsg);
-    messageTiles.add(mapMsg);
-    messageTiles.add(mapMsg2);
+        marker: new LatLng(50.07, 19.60),
+        tweet: false);
+
+    var tweetMsg = new MessageTile(
+        "Look what I found", "Robo", DateTime.now(), TileType.TWEET,
+        tweet: true);
+
+    messageTiles.addAll([choiceMsg, mapMsg, mapMsg2, tweetMsg]);
     super.initState();
     widget.onLoad(messageTiles);
   }
@@ -94,7 +100,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     itemBuilder: (ctx, i) {
                       if (messageTiles[i].type == TileType.SYSTEM) {
                         return ReceivedMessagesWidget(msgTile: messageTiles[i]);
-                      } else {
+                      } 
+                      else if (messageTiles[i].type == TileType.TWEET) {
+                        return TwitterMessageWidget();
+                      } 
+                      else {
                         return SentMessageWidget(msgTile: messageTiles[i]);
                       }
                     },

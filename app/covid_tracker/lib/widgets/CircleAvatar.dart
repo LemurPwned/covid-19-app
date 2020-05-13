@@ -1,10 +1,13 @@
 import 'package:covid_tracker/widgets/MapWidget.dart';
 import 'package:covid_tracker/util/speaker.dart';
+import 'package:covid_tracker/widgets/TwitterView.dart';
+import 'package:tweet_ui/models/api/tweet.dart';
+import 'package:tweet_ui/tweet_ui.dart';
 
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
 
-enum TileType { SYSTEM, USER }
+enum TileType { SYSTEM, USER, TWEET }
 Color myGreen = Color(0xff4bb17b);
 
 class MessageTile {
@@ -18,9 +21,10 @@ class MessageTile {
   TileType type;
   List<String> choices;
   LatLng marker;
+  bool tweet = false;
 
   MessageTile(this.text, this.username, this.time, this.type,
-      {this.choices, this.marker});
+      {this.choices, this.marker, this.tweet});
 
   String dateString() {
     return "${this.time.hour}:${this.time.minute}";
@@ -61,6 +65,22 @@ class CustomCircleAvatar extends StatelessWidget {
     );
   }
 }
+
+
+
+class TwitterMessageWidget extends StatefulWidget {
+  @override 
+  TwitterMessageWidgetState createState() => TwitterMessageWidgetState();
+
+}
+
+class TwitterMessageWidgetState extends State<TwitterMessageWidget>{
+
+ @override
+  Widget build(BuildContext context) {
+    return TwitterView();
+  }
+} 
 
 class ReceivedMessagesWidget extends StatefulWidget {
   final MessageTile msgTile;
@@ -130,6 +150,14 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
     }
   }
 
+  Widget tweetDisplay() {
+    if (currentMsgTile.tweet) {
+      return TwitterView();
+    } else {
+      return SizedBox.shrink();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -172,7 +200,7 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
                           SizedBox(
                             height: 15,
                           ),
-                          locationDirective(currentMsgTile.marker)
+                          locationDirective(currentMsgTile.marker),
                         ],
                       ),
                     ),
