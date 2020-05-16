@@ -29,19 +29,28 @@ function formulateState(state, messageText, messageChoices, responseExpected) {
 }
 
 
-function onZeroState(res) {
+async function onZeroState(body, res) {
     // send Hello to DF 
-    let dfResponse = "Back"
-    let responseState = formulateState(
-        States.Text,
-        dfResponse,
-        null,
-        true
-    );
-    res.status(200).set('Content-Type', 'application/json')
-    res.json(responseState)
-    // let result = await dfClient.
+    let msg = body['userInput']['message']
+    console.log('User message')
+    console.log(msg)
+    dfClient.retrieveDiaglogFlowQuery(
+        msg
+    ).then(
+        (dfResponse) => {
+            console.log(dfResponse)
+            let responseState = formulateState(
+                States.Text,
+                dfResponse.fulfillmentText,
+                null,
+                true
+            );
+            res.status(200).set('Content-Type', 'application/json')
+            res.json(responseState)
+        }
+    )
 }
+
 
 function updateState(params) {
 
@@ -109,12 +118,13 @@ function onNotWellIntent() {
 
 
 
-function uponStateRequest(mobileRequest) {
+async function uponStateRequest(mobileRequest, res) {
     /**
      *  Mobile request defines a state 
      * and the user response to that state
      */
 
+    onZeroState(mobileRequest, res)
     var lastMobileState = mobileRequest["state"]
     switch (lastMobileState) {
         case States.Location:
@@ -123,7 +133,7 @@ function uponStateRequest(mobileRequest) {
             break
         case States.Text:
             break
-        case Twitter:
+        case States.Twitter:
             break
         default:
             break
@@ -133,3 +143,6 @@ function uponStateRequest(mobileRequest) {
 }
 
 
+module.exports = {
+    uponStateRequest: uponStateRequest
+}
