@@ -2,12 +2,20 @@
 const dfClient = require('./DialogFlowClient')
 
 
-const States = {
-    Location: 1,
-    MultiChoice: 2,
-    Text: 3,
-    Twitter: 4
+const Actions = {
+    Location: 0,
+    MultiChoice: 1,
+    Text: 2,
+    Twitter: 3
 }
+
+const Intents = {
+    WelcomeIntent: "WelcomeIntent",
+    NotWellIntent: "NotWellIntent",
+    EverythingIsFineIntent: "EverythingIsFineIntent",
+    SomethingIsNotFineIntent: "SomethingIsWrongIntnet",
+}
+
 
 let allSymptoms = ["fever", "cough", "pain", "headache", "cold", "backpain"] // example one
 
@@ -18,9 +26,17 @@ let riskChain = {
     2: 'low'
 }
 
-function formulateState(state, messageText, messageChoices, responseExpected) {
+// let intents = [
+//     "WelcomeIntent",
+//     "None",
+//     "HighFeverIntent",
+//     "WorseFeelingIntent"
+// ]
+
+function formulateState(state, intent, messageText, messageChoices, responseExpected) {
     let responseState = {
-        "State": state,
+        "state": state,
+        "intent": intent,
         "messageText": messageText,
         "messageChoices": messageChoices,
         "responseExpected": responseExpected
@@ -29,39 +45,26 @@ function formulateState(state, messageText, messageChoices, responseExpected) {
 }
 
 
-async function onZeroState(body, res) {
-    // send Hello to DF 
-    let msg = body['userInput']['message']
-    console.log('User message')
-    console.log(msg)
-    dfClient.retrieveDiaglogFlowQuery(
-        msg
-    ).then(
-        (dfResponse) => {
-            console.log(dfResponse)
-            let responseState = formulateState(
-                States.Text,
-                dfResponse.fulfillmentText,
-                null,
-                true
-            );
-            res.status(200).set('Content-Type', 'application/json')
-            res.json(responseState)
-        }
-    )
+async function onZeroState(body, dfResponse, res) {
+    let responseState = formulateState(
+        Actions.Text,
+        dfResponse.intent.displayName ? dfResponse.intent.displayName : "None",
+        dfResponse.fulfillmentText,
+        null,
+        true
+    );
+    res.status(200).set('Content-Type', 'application/json')
+    res.json(responseState)
 }
 
 
-function updateState(params) {
-
-}
 
 
 function onYesNoQuestion() {
     // ask dialogflow
     let dfResponse = "Well then could you...?"
     let responseState = formulateState(
-        States.Text,
+        Actions.Text,
         dfResponse,
         null,
         true
@@ -70,7 +73,7 @@ function onYesNoQuestion() {
     res.json(responseState)
 }
 
-function onSymptomSelection() {
+function onSymptomSelection(mobileRequest, dfResponse, res) {
     /**
      * Call model here and ask for prob
      */
@@ -82,20 +85,23 @@ function onSymptomSelection() {
         // agitated response 
         // put the hospital info 
         // some default resonse Fallback
-        let msg = "You are found to be in high risk group!"
-        msg += "This is the closest hospital"
-        return formulateState(
-            States.Location,
+        let msg = `You are found to be in high risk group! Pr: ${calculatedRisk}\n`
+        msg += "This is the closest hospital!"
+        let responseState = formulateState(
+            Actions.Location,
+            Intents.SomethingIsNotFineIntent,
             msg,
             null,
             false
         )
+        res.status(200).set('Content-Type', 'application/json')
+        res.json(responseState)
     } else {
         // low threshold 
         // normal response 
         let msg = "Fortunately your health is ok!"
         return formulateState(
-            Math.random() > 0.5 ? States.Twitter : States.Text,
+            Math.random() > 0.5 ? Actions.Twitter : Actions.Text,
             msg,
             null,
             false
@@ -103,17 +109,20 @@ function onSymptomSelection() {
     }
 }
 
-function onNotWellIntent() {
+function onNotWellIntent(body, dfResponse, res) {
     const n = 4
     const shuffled = allSymptoms.sort(() => 0.5 - Math.random());
     // Get sub-array of first n elements after shuffled
     let selected = shuffled.slice(0, n);
-    return formulateState(
-        States.MultiChoice,
-        "Did you experience any of those symptoms?",
+    let responseState = formulateState(
+        Actions.MultiChoice,
+        dfResponse.intent.displayName,
+        dfResponse.fulfillmentText,
         selected,
         true
     )
+    res.status(200).set('Content-Type', 'application/json')
+    res.json(responseState)
 }
 
 
@@ -124,21 +133,34 @@ async function uponStateRequest(mobileRequest, res) {
      * and the user response to that state
      */
 
-    onZeroState(mobileRequest, res)
-    var lastMobileState = mobileRequest["state"]
-    switch (lastMobileState) {
-        case States.Location:
-            break;
-        case States.MultiChoice:
-            break
-        case States.Text:
-            break
-        case States.Twitter:
-            break
-        default:
-            break
-
+    if (mobileRequest.userInput.choices != null) {
+        onSymptomSelection(mobileRequest, null, res);
     }
+    else {
+        let dfResponse = await dfClient.retrieveDiaglogFlowQuery(
+            mobileRequest['userInput']['message']
+        )
+        console.log(dfResponse.intent)
+        switch (dfResponse.intent.displayName) {
+            case Intents.WelcomeIntent:
+                console.log("Sending welcome response")
+                onZeroState(mobileRequest, dfResponse, res)
+                break
+            case Intents.NotWellIntent:
+                console.log("Not well response")
+                onNotWellIntent(mobileRequest, dfResponse, res)
+                break
+            case Intents.EverythingIsFineIntent:
+                console.log("All fine response")
+                break
+            case Actions.Twitter:
+                break
+            default:
+                break
+
+        }
+    }
+
 
 }
 

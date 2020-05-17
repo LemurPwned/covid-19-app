@@ -3,30 +3,8 @@ import 'package:covid_tracker/widgets/TwitterView.dart';
 
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
+import 'package:covid_tracker/util/MessageTile.dart';
 
-enum TileType { SYSTEM, USER, TWEET }
-Color myGreen = Color(0xff4bb17b);
-
-class MessageTile {
-  @required
-  String text;
-  @required
-  String username;
-  @required
-  DateTime time;
-  @required
-  TileType type;
-  List<String> choices;
-  LatLng marker;
-  bool tweet = false;
-
-  MessageTile(this.text, this.username, this.time, this.type,
-      {this.choices, this.marker, this.tweet});
-
-  String dateString() {
-    return "${this.time.hour}:${this.time.minute}";
-  }
-}
 
 final robotUrl =
     'https://www.pinclipart.com/picdir/big/344-3446018_best-whiteboard-video-software-robot-logo-png-clipart.png';
@@ -134,6 +112,10 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
     } else {
       return SizedBox.shrink();
     }
+  }
+
+  List<String> getSelectedChoices(){
+    return selectedChoices;
   }
 
   Widget locationDirective(LatLng destination) {
