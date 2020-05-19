@@ -1,0 +1,9 @@
+{
+    "name": "sample-http",
+    "version": "0.0.1",
+    "description": "Backend for covid app",
+    "dependencies": {
+      "dialogflow": "^1.2.0",
+      "uuid": "~8.0.0"
+    }
+}
