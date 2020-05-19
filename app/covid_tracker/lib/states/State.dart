@@ -40,7 +40,6 @@ class ResponseState {
     } else {
       this.messageChoices = null;
     }
-
     this.responseExpected = json['responseExpected'];
   }
 }

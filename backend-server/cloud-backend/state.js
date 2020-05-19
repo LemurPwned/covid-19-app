@@ -1,6 +1,4 @@
-
-const dfClient = require('./DialogFlowClient')
-
+const dfClient = require('./dialogFlowClient')
 
 const Actions = {
     Location: 0,
@@ -16,9 +14,7 @@ const Intents = {
     SomethingIsNotFineIntent: "SomethingIsWrongIntnet",
 }
 
-
 let allSymptoms = ["fever", "cough", "pain", "headache", "cold", "backpain"] // example one
-
 let currentChainState = 0
 let riskChain = {
     0: 'high',
@@ -44,7 +40,6 @@ function formulateState(state, intent, messageText, messageChoices, responseExpe
     return responseState
 }
 
-
 async function onZeroState(body, dfResponse, res) {
     let responseState = formulateState(
         Actions.Text,
@@ -56,9 +51,6 @@ async function onZeroState(body, dfResponse, res) {
     res.status(200).set('Content-Type', 'application/json')
     res.json(responseState)
 }
-
-
-
 
 function onYesNoQuestion() {
     // ask dialogflow
@@ -125,8 +117,6 @@ function onNotWellIntent(body, dfResponse, res) {
     res.json(responseState)
 }
 
-
-
 async function uponStateRequest(mobileRequest, res) {
     /**
      *  Mobile request defines a state 
@@ -163,7 +153,6 @@ async function uponStateRequest(mobileRequest, res) {
 
 
 }
-
 
 module.exports = {
     uponStateRequest: uponStateRequest

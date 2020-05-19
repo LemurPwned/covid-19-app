@@ -1,10 +1,6 @@
-import 'dart:convert';
-
 import 'package:covid_tracker/util/speaker.dart';
 import 'package:flutter/material.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
-import 'package:flutter_dialogflow/dialogflow_v2.dart';
-import 'package:covid_tracker/util/LastBotValidResponse.dart';
 import 'package:covid_tracker/states/State.dart';
 import 'package:covid_tracker/util/MessageTile.dart';
 
@@ -36,18 +32,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Speaker _speaker = Speaker.getInstance();
   int stateMachineStep = 0;
-  LastBotValidResponse _lastValidResponse;
-
-  MobileState currentState;
 
   @override
   void initState() {
     var initMsg = "Hello! Type in a greeting message to begin interaction!";
     var initialMessage =
-        new MessageTile(initMsg, 'Robo', DateTime.now(), TileType.SYSTEM);
+        MessageTile(initMsg, 'Robo', DateTime.now(), TileType.SYSTEM);
     _messageTiles.add(initialMessage);
-
-    _lastValidResponse = new LastBotValidResponse(0, initMsg);
 
     super.initState();
     widget.onLoad(_messageTiles);
@@ -55,52 +46,39 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void responseInteraction() async {
     var msgText = _textController.text;
-    // get selected choices 
+    // get selected choices
     var userChoices = _messageTiles.last.choices;
     print(userChoices);
     // TOOD: handle null submissions
-    if (currentState == null && msgText.isNotEmpty) {
+    if (msgText.isNotEmpty) {
       setState(() {
         _messageTiles
             .add(MessageTile(msgText, 'user', DateTime.now(), TileType.USER));
         _textController.clear();
       });
       // initialise zero state
-      MobileState cState = MobileState(StateType.TEXT, "0",
-          DateTime.now().toIso8601String(), UserInput(msgText, choices: userChoices));
+      MobileState cState = MobileState(
+          StateType.TEXT,
+          "0",
+          DateTime.now().toIso8601String(),
+          UserInput(msgText, choices: userChoices));
 
-      var nextState = await _stateInteraction.fetchInteraction(cState);
+      var nextState;
+      try {
+        nextState = await _stateInteraction.fetchInteraction(cState);
+      } catch (error) {
+        print("Failed to get the response from the server");
+      }
       if (nextState != null) {
         setState(() {
           _messageTiles.add(MessageTile.fromResponseState(nextState));
         });
+      } else {
+        setState(() {
+          _messageTiles.add(MessageTile("Server currently unavailable!", 'Robo',
+              DateTime.now(), TileType.SYSTEM));
+        });
       }
-    }
-  }
-
-  void ParseValidResponse(String response) {
-    String keyword = "symptoms";
-    switch (keyword) {
-      case "symptoms":
-        {
-          List<String> choices = [
-            "headache",
-            "fever",
-            "short-breath",
-            "sneezing",
-            "loss of smell"
-          ];
-
-          var choiceMsg = new MessageTile(
-              "Pick symptoms that best describe how you feel!",
-              'Robo',
-              DateTime.now(),
-              TileType.SYSTEM,
-              choices: choices);
-
-          _messageTiles.add(choiceMsg);
-          break;
-        }
     }
   }
 
