@@ -15,19 +15,6 @@ const Intents = {
 }
 
 let allSymptoms = ["fever", "cough", "pain", "headache", "cold", "backpain"] // example one
-let currentChainState = 0
-let riskChain = {
-    0: 'high',
-    1: 'normal/undefined',
-    2: 'low'
-}
-
-// let intents = [
-//     "WelcomeIntent",
-//     "None",
-//     "HighFeverIntent",
-//     "WorseFeelingIntent"
-// ]
 
 function formulateState(state, intent, messageText, messageChoices, responseExpected) {
     let responseState = {
@@ -150,8 +137,6 @@ async function uponStateRequest(mobileRequest, res) {
 
         }
     }
-
-
 }
 
 module.exports = {
