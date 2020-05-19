@@ -6,7 +6,6 @@ import 'package:covid_tracker/util/MessageTile.dart';
 
 class ChatScreen extends StatefulWidget {
   int speakerCursor = 0;
-  int risk = 0;
 
   @override
   _ChatScreenState createState() {
@@ -31,7 +30,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final StateMachineInteraction _stateInteraction = StateMachineInteraction();
 
   Speaker _speaker = Speaker.getInstance();
-  int stateMachineStep = 0;
 
   @override
   void initState() {
