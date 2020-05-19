@@ -1,10 +1,10 @@
 import 'package:covid_tracker/util/speaker.dart';
 import 'package:flutter/material.dart';
-import 'package:latlong/latlong.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
+import 'package:covid_tracker/states/State.dart';
+import 'package:covid_tracker/util/MessageTile.dart';
 
 class ChatScreen extends StatefulWidget {
-  ChatScreen() {}
   int speakerCursor = 0;
 
   @override
@@ -24,53 +24,60 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  List<MessageTile> messageTiles = new List();
-  final msgField = TextEditingController();
+  List<MessageTile> _messageTiles = List();
+  final _textController = TextEditingController();
+
+  final StateMachineInteraction _stateInteraction = StateMachineInteraction();
+
+  Speaker _speaker = Speaker.getInstance();
 
   @override
   void initState() {
-    var initialMessage = new MessageTile(
-        "Hello! My name in Covidella. I'm here to help you!",
-        'Robo',
-        DateTime.now(),
-        TileType.SYSTEM);
-    messageTiles.add(initialMessage);
-    List<String> choices = [
-      "headache",
-      "fever",
-      "short-breath",
-      "sneezing",
-      "loss of smell"
-    ];
+    var initMsg = "Hello! Type in a greeting message to begin interaction!";
+    var initialMessage =
+        MessageTile(initMsg, 'Robo', DateTime.now(), TileType.SYSTEM);
+    _messageTiles.add(initialMessage);
 
-    var choiceMsg = new MessageTile(
-        "Pick symptoms that best describe how you feel!",
-        'Robo',
-        DateTime.now(),
-        TileType.SYSTEM,
-        choices: choices);
-    var mapMsg = new MessageTile(
-        "Here's the nearest hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
-        marker: new LatLng(50.03, 19.57));
-
-    var mapMsg2 = new MessageTile(
-        "Here's another hospital", 'Robo', DateTime.now(), TileType.SYSTEM,
-        marker: new LatLng(50.07, 19.60));
-    messageTiles.add(choiceMsg);
-    messageTiles.add(mapMsg);
-    messageTiles.add(mapMsg2);
     super.initState();
-    widget.onLoad(messageTiles);
+    widget.onLoad(_messageTiles);
   }
 
-  void responseInteraction() {
-    /// create a new Message
-    var msgText = msgField.text;
-    var msg = MessageTile(msgText, 'user', new DateTime.now(), TileType.USER);
-    setState(() {
-      messageTiles.add(msg);
-      msgField.clear();
-    });
+  void responseInteraction() async {
+    var msgText = _textController.text;
+    // get selected choices
+    var userChoices = _messageTiles.last.choices;
+    print(userChoices);
+    // TOOD: handle null submissions
+    if (msgText.isNotEmpty) {
+      setState(() {
+        _messageTiles
+            .add(MessageTile(msgText, 'user', DateTime.now(), TileType.USER));
+        _textController.clear();
+      });
+      // initialise zero state
+      MobileState cState = MobileState(
+          StateType.TEXT,
+          "0",
+          DateTime.now().toIso8601String(),
+          UserInput(msgText, choices: userChoices));
+
+      var nextState;
+      try {
+        nextState = await _stateInteraction.fetchInteraction(cState);
+      } catch (error) {
+        print("Failed to get the response from the server");
+      }
+      if (nextState != null) {
+        setState(() {
+          _messageTiles.add(MessageTile.fromResponseState(nextState));
+        });
+      } else {
+        setState(() {
+          _messageTiles.add(MessageTile("Server currently unavailable!", 'Robo',
+              DateTime.now(), TileType.SYSTEM));
+        });
+      }
+    }
   }
 
   @override
@@ -90,12 +97,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(15),
-                    itemCount: messageTiles.length,
+                    itemCount: _messageTiles.length,
                     itemBuilder: (ctx, i) {
-                      if (messageTiles[i].type == TileType.SYSTEM) {
-                        return ReceivedMessagesWidget(msgTile: messageTiles[i]);
+                      if (_messageTiles[i].type == TileType.SYSTEM) {
+                        return ReceivedMessagesWidget(
+                            msgTile: _messageTiles[i]);
                       } else {
-                        return SentMessageWidget(msgTile: messageTiles[i]);
+                        return SentMessageWidget(msgTile: _messageTiles[i]);
                       }
                     },
                   ),
@@ -122,7 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               SizedBox(width: 15),
                               Expanded(
                                 child: TextField(
-                                  controller: msgField,
+                                  controller: _textController,
                                   decoration: InputDecoration(
                                       hintText: "Type Something...",
                                       border: InputBorder.none),

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:async';
 
 const String url = "https://corona.lmao.ninja/v2/historical/";
-const String countryUrl = "https://corona.lmao.ninja/countries/";
+const String countryUrl = "https://corona.lmao.ninja/v2/countries/";
 
 class NamedSeries {
   final String name;

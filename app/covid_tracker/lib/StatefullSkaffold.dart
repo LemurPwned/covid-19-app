@@ -1,4 +1,4 @@
-import 'package:covid_tracker/ChartWindow.dart';
+import 'package:covid_tracker/ChatWindow.dart';
 import 'package:covid_tracker/Graph.dart';
 import 'package:covid_tracker/util/speaker.dart';
 import 'package:covid_tracker/widgets/MapWidget.dart';

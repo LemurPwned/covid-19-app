@@ -5,6 +5,11 @@ import json
 
 from collections import defaultdict
 
+from geopy.geocoders import Nominatim
+geolocator = Nominatim(user_agent="test-agent")
+
+import time
+
 
 def fetch_isolation_hospitals():
     url = 'https://www.gov.pl/web/koronawirus/lista-szpitali'
@@ -31,4 +36,30 @@ def fetch_isolation_hospitals():
         json.dump(hospital_list, open("Hospitals.json", 'w'))
 
 
-fetch_isolation_hospitals()
+def match_hospitals_with_location():
+
+    data = json.load(open('Hospitals.json', 'r'))
+
+    full_data = defaultdict()
+
+    for region in data:
+        for hospital in data[region]:
+            datas = hospital.split(',')
+            hos = datas[1].strip()
+            query = f"{datas[2].strip()}, {datas[0].strip()}"
+            res = geolocator.geocode(query)
+            try:
+                full_data[res.address] = {
+                    'latitude': res.latitude,
+                    'longitude': res.longitude
+                }
+                print(res.address, res.latitude, res.longitude)
+            except:
+                print(res)
+            time.sleep(1.5)
+            # quit()
+    json.dump(full_data, open('full_data.json', 'w'))
+
+
+# fetch_isolation_hospitals()
+match_hospitals_with_location()

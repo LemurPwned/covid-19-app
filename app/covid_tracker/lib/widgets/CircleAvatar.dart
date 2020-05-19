@@ -1,31 +1,10 @@
 import 'package:covid_tracker/widgets/MapWidget.dart';
-import 'package:covid_tracker/util/speaker.dart';
+import 'package:covid_tracker/widgets/TwitterView.dart';
 
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
+import 'package:covid_tracker/util/MessageTile.dart';
 
-enum TileType { SYSTEM, USER }
-Color myGreen = Color(0xff4bb17b);
-
-class MessageTile {
-  @required
-  String text;
-  @required
-  String username;
-  @required
-  DateTime time;
-  @required
-  TileType type;
-  List<String> choices;
-  LatLng marker;
-
-  MessageTile(this.text, this.username, this.time, this.type,
-      {this.choices, this.marker});
-
-  String dateString() {
-    return "${this.time.hour}:${this.time.minute}";
-  }
-}
 
 final robotUrl =
     'https://www.pinclipart.com/picdir/big/344-3446018_best-whiteboard-video-software-robot-logo-png-clipart.png';
@@ -61,6 +40,22 @@ class CustomCircleAvatar extends StatelessWidget {
     );
   }
 }
+
+
+
+class TwitterMessageWidget extends StatefulWidget {
+  @override 
+  TwitterMessageWidgetState createState() => TwitterMessageWidgetState();
+
+}
+
+class TwitterMessageWidgetState extends State<TwitterMessageWidget>{
+
+ @override
+  Widget build(BuildContext context) {
+    return TwitterView();
+  }
+} 
 
 class ReceivedMessagesWidget extends StatefulWidget {
   final MessageTile msgTile;
@@ -119,12 +114,24 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
     }
   }
 
+  List<String> getSelectedChoices(){
+    return selectedChoices;
+  }
+
   Widget locationDirective(LatLng destination) {
     if (destination != null) {
       return SizedBox(
           height: 120,
           width: 300,
           child: MapWidget(destinationMarker: destination));
+    } else {
+      return SizedBox.shrink();
+    }
+  }
+
+  Widget tweetDisplay() {
+    if (currentMsgTile.tweet) {
+      return TwitterView();
     } else {
       return SizedBox.shrink();
     }
@@ -172,7 +179,7 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
                           SizedBox(
                             height: 15,
                           ),
-                          locationDirective(currentMsgTile.marker)
+                          locationDirective(currentMsgTile.marker),
                         ],
                       ),
                     ),
