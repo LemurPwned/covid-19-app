@@ -35,7 +35,8 @@ class MapWidgetState extends State<MapWidget> {
     print(
         "${place.locality}, ${place.postalCode}, ${place.country}, ${place.administrativeArea}");
 
-    if (this.widget.destinationMarker.latitude == 0.0) {
+    if (this.widget.destinationMarker != null &&
+        this.widget.destinationMarker.latitude == 0.0) {
       this.widget.destinationMarker =
           await findNearestHospital(LatLng(pos.latitude, pos.longitude));
     }
@@ -44,15 +45,14 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   Future<LatLng> findNearestHospital(LatLng currentLoc) async {
-    String data =
-        await DefaultAssetBundle.of(context).loadString("assets/full_data.json");
-    final jsonResult  =json.decode(data);
+    String data = await DefaultAssetBundle.of(context)
+        .loadString("assets/full_data.json");
+    final jsonResult = json.decode(data);
 
     var smallestDist = 100000000.0;
     LatLng closest;
     for (final key in jsonResult.values) {
-      var hospital =
-          LatLng(key['latitude'], key['longitude']);
+      var hospital = LatLng(key['latitude'], key['longitude']);
       final distance = Distance();
       var km = distance.as(LengthUnit.Kilometer, currentLoc, hospital);
       if (km < smallestDist) {
