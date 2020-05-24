@@ -1,5 +1,7 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:cloud_functions/cloud_functions.dart';
 
 import 'dart:convert';
 import 'dart:async';
@@ -69,16 +71,42 @@ class StateMachineInteraction {
   Future<ResponseState> fetchInteraction(MobileState state) async {
     final localState = jsonEncode(state.toJson());
     print(localState);
-    final response = await http.post("http://192.168.0.17:3000/response",
-        body: localState, headers: {'Content-type': 'application/json'});
+    var a = FirebaseApp.instance;
+    final CloudFunctions cf = CloudFunctions(region: 'europe-west2');
 
-    print(response);
-    if (response.statusCode == 200) {
-      var responseBody = json.decode(response.body);
-      print(responseBody);
-      return ResponseState.fromJson(responseBody);
-    } else {
-      throw Exception("Failed to fetch next State");
+
+    final HttpsCallable callable = cf
+        .getHttpsCallable(functionName: 'covid-19-backend-server')
+      ..timeout = const Duration(seconds: 30);
+
+        // <String, dynamic>{
+        //   'state': 'WelcomeState',
+        //   'userInput': {
+        //     'message': 'I\'m not well today',
+        //     'choices': ['cough', 'pain']
+        //   }
+        // },
+    try {
+      final HttpsCallableResult response = await callable.call();
+      print(response.data);
+    } on CloudFunctionsException catch (e) {
+      print('caught firebase functions exception');
+      print("-----------" + e.message);
+    } catch (e) {
+      print('caught generic exception');
+      print(e);
     }
+
+//    final response = await http.post("https://europe-west2-newagent-jqwvxl.cloudfunctions.net/covid-19-backend-server",
+//        body: localState, headers: {'Content-type': 'application/json'});
+
+//    print(response);
+//    if (response.statusCode == 200) {
+//      var responseBody = json.decode(response.body);
+//      print(responseBody);
+//      return ResponseState.fromJson(responseBody);
+//    } else {
+//      throw Exception("Failed to fetch next State");
+//    }
   }
 }
