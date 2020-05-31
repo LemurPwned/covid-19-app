@@ -1,4 +1,7 @@
 const dfClient = require('./dialogFlowClient')
+const model = require('./algo')
+const fs = require('fs');
+
 
 const Actions = {
     Location: 0,
@@ -14,8 +17,17 @@ const Intents = {
     SomethingIsNotFineIntent: "SomethingIsWrongIntnet",
 }
 
-let allSymptoms = ["fever", "cough", "pain", "headache", "cold", "backpain"] // example one
-let currentChainState = 0
+let allSymptoms = ['fever', 'cough', 'general malaise', 'throat pain',
+    'difficulty in breathing', 'headache', 'chill', 'runny nose',
+    'joint pain', 'cough with sputum', 'diarrhea', 'muscle pain',
+    'pneumonia', 'nausea', 'loss of appetite', 'chest discomfort',
+    'abdominal pain', 'flu', 'respiratory distress', 'heavy head',
+    'thirst', 'whole body pain', 'back pain', 'reflux'] // example one
+
+
+const symptomsCSV = './mod_probs_counter.json'
+let modProbsCounter = JSON.parse(fs.readFileSync(symptomsCSV, 'utf8'));
+
 let riskChain = {
     0: 'high',
     1: 'normal/undefined',
@@ -69,15 +81,19 @@ function onSymptomSelection(mobileRequest, dfResponse, res) {
     /**
      * Call model here and ask for prob
      */
-    let riskThreshold = 0.3
-    let calculatedRisk = 0.7 // call the model here 
+    let riskThreshold = 1.1
+    // let calculatedRisk = 0.7 // call the model here 
+
+    let calculatedRisk = model.calculateProbability(
+        modProbsCounter, mobileRequest.userInput.choices, 0.1
+    ) * 100
 
     if (calculatedRisk > riskThreshold) {
         // high risk
         // agitated response 
         // put the hospital info 
         // some default resonse Fallback
-        let msg = `You are found to be in high risk group! Pr: ${calculatedRisk}\n`
+        let msg = `You are found to be in high risk group! Risk index: ${calculatedRisk.toFixed(3)}\n`
         msg += "This is the closest hospital!"
         let responseState = formulateState(
             Actions.Location,
@@ -109,8 +125,23 @@ function onNotWellIntent(body, dfResponse, res) {
     let responseState = formulateState(
         Actions.MultiChoice,
         dfResponse.intent.displayName,
-        dfResponse.fulfillmentText,
+        "Mark your symptoms, confirm with typing in OK.",
         selected,
+        true
+    )
+    res.status(200).set('Content-Type', 'application/json')
+    res.json(responseState)
+}
+
+
+function onDefaultState(body, dfResponse, res) {
+
+
+    let responseState = formulateState(
+        Actions.Text,
+        dfResponse.intent.displayName,
+        dfResponse.fulfillmentText,
+        null,
         true
     )
     res.status(200).set('Content-Type', 'application/json')
@@ -143,10 +174,9 @@ async function uponStateRequest(mobileRequest, res) {
             case Intents.EverythingIsFineIntent:
                 console.log("All fine response")
                 break
-            case Actions.Twitter:
-                break
             default:
-                break
+                onDefaultState(mobileRequest, dfResponse, res)
+                console.log("Default response")
 
         }
     }

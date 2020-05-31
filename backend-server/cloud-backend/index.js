@@ -15,7 +15,7 @@ app.post('/response', function (req, res) {
   state.uponStateRequest(body, res).catch(
     (err) => {
       console.log(`Error ${err}`)
-      req.statusCode(404).send(err)
+      res.status(404).send(err)
     }
   )
 })

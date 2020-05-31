@@ -39,7 +39,7 @@ class MapWidgetState extends State<MapWidget> {
         this.widget.destinationMarker.latitude == 0.0) {
       this.widget.destinationMarker =
           await findNearestHospital(LatLng(pos.latitude, pos.longitude));
-    }
+    } 
 
     return pos;
   }
