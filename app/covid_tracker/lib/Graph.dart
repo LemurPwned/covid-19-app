@@ -146,7 +146,8 @@ class _CovidGraphState extends State<CovidGraph> {
     var cases = seriesList[0].data.map((e) => e.day).toList().indexOf(dt);
     var deaths = seriesList[1].measureFn(cases);
     cases = seriesList[0].measureFn(cases);
-
+    print(cases);
+    print(deaths);
     void rebuild(_) {
       setState(() {
         _sliderDomainValue = domain;
@@ -163,7 +164,7 @@ class _CovidGraphState extends State<CovidGraph> {
 
     final children = <Widget>[
       SizedBox(
-          height: 300.0,
+          height: 280.0,
           child: charts.TimeSeriesChart(
             seriesList,
             animate: false,
@@ -202,11 +203,11 @@ class _CovidGraphState extends State<CovidGraph> {
           "${_sliderDomainValue.day.toString().padLeft(2, '0')}-${_sliderDomainValue.month.toString().padLeft(2, '0')}";
 
       children.add(Padding(
-          padding: EdgeInsets.only(top: 5.0), child: Text('Date: $dateSlug')));
+          padding: EdgeInsets.only(top: 1.0), child: Text('Date: $dateSlug')));
     }
-    if (_sliderPosition != null) {
+    if (currentDeaths != null) {
       children.add(Padding(
-          padding: EdgeInsets.only(top: 5.0),
+          padding: EdgeInsets.only(top: 1.0),
           child: Text('Deaths: $currentDeaths, cases: $currentCases')));
     }
 
@@ -228,7 +229,7 @@ class _CovidGraphState extends State<CovidGraph> {
           Card(child: timeSeriesBuilder()),
           Card(child: barChartBuilder(["todayCases", "critical"])),
           Card(child: barChartBuilder(["active", "recovered"])),
-          Card(child: SizedBox(height: 200.0, child: TwitterView()))
+          Card(child: SizedBox(height: 350.0, child: TwitterView()))
         ],
         mainAxisSpacing: 4.0,
         crossAxisSpacing: 4.0,
