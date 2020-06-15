@@ -108,12 +108,14 @@ function onSymptomSelection(mobileRequest, dfResponse, res) {
         // low threshold 
         // normal response 
         let msg = "Fortunately your health is ok!"
-        return formulateState(
+        let responseState =  formulateState(
             Math.random() > 0.5 ? Actions.Twitter : Actions.Text,
             msg,
             null,
             false
         );
+        res.status(200).set('Content-Type', 'application/json')
+        res.json(responseState)
     }
 }
 
@@ -152,9 +154,11 @@ async function uponStateRequest(mobileRequest, res) {
     /**
      *  Mobile request defines a state 
      * and the user response to that state
-     */
-
+     */ 
+    console.log("Processing request!")
+    console.log(mobileRequest)
     if (mobileRequest.userInput.choices != null) {
+        console.log(mobileRequest.userInput.choices)
         onSymptomSelection(mobileRequest, null, res);
     }
     else {

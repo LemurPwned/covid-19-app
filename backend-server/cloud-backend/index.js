@@ -12,6 +12,7 @@ app.post('/response', function (req, res) {
   const body = req.body
 
   // const jsonBody = JSON.parse(body);
+  res.setTimeout(5000, () => res.status(408).send('Request timed out!'));
   state.uponStateRequest(body, res).catch(
     (err) => {
       console.log(`Error ${err}`)
