@@ -164,7 +164,6 @@ function onWeatherState(body, dfResponse, res) {
     let city = JSON.parse(dfResponse.fulfillmentText).address.trim()
     let query = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=4526d487f12ef78b82b7a7d113faea64"
     query = encodeURI(query)
-    console.log(city, query)
     request(query, { json: true }, (err, _, body) => {
         if (err) {
             console.log(err)
