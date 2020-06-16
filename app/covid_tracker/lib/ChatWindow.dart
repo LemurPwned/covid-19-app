@@ -73,14 +73,23 @@ class ChatScreenState extends State<ChatScreen> {
         print("Failed to get the response from the server: " + error.toString());
       }
       if (nextState != null) {
-        setState(() {
-          _messageTiles.add(MessageTile.fromResponseState(nextState));
+        var msgTile = MessageTile.fromResponseState(nextState);
+        setState(() {          
+          _messageTiles.add(msgTile);
         });
+        _speaker.CustomSpeak(msgTile.text);
+
+        if(msgTile.choices != null){
+          _speaker.CustomSpeak(msgTile.choices.join(" "));
+        }
       } else {
-        setState(() {
-          _messageTiles.add(MessageTile("Server currently unavailable!", 'Robo',
+        var msgText = "Server currently unavailable!";
+        setState(() {          
+          _messageTiles.add(MessageTile(msgText, 'Robo',
               DateTime.now(), TileType.SYSTEM));
         });
+        
+        _speaker.CustomSpeak(msgText);
       }
     }
     _controller.jumpTo(_controller.position.maxScrollExtent);

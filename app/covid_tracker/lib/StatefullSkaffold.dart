@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 class MainScaffold extends StatefulWidget {
   @required
   List<PageStorage> screens;
-  final List<String> names = ["Chat", "Charts", "Map"];
+  final List<String> names = ["Chat", "Charts"];
 
   MainScaffold() {
     Speaker.getInstance();
@@ -16,7 +16,6 @@ class MainScaffold extends StatefulWidget {
     screens = [
       PageStorage(child: ChatScreen(), bucket: PageStorageBucket()),
       PageStorage(child: CovidGraph(), bucket: PageStorageBucket()),
-      PageStorage(child: MapWidget(), bucket: PageStorageBucket()),
     ];
   }
 
@@ -62,8 +61,7 @@ class MainScaffoldState extends State<MainScaffold> {
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.chat), title: Text("Chat")),
           BottomNavigationBarItem(
-              icon: Icon(Icons.show_chart), title: Text("Chart")),
-          BottomNavigationBarItem(icon: Icon(Icons.map), title: Text("Map")),
+              icon: Icon(Icons.show_chart), title: Text("Chart"))
         ]);
   }
 }
