@@ -1,7 +1,7 @@
 const dialogflow = require('dialogflow');
 const uuid = require('uuid');
 
-//dlaczego jak wywoluje ta funkcje to config mam undefined? musze w argumencie exportowaną zmienna przekazac
+
 const config = require('./credentials/newagent-jqwvxl-2cd321decf71.json');
 
 console.log(config)
@@ -25,6 +25,7 @@ async function retrieveDiaglogFlowQuery(queryText) {
     },
   };
 
+  
   // Send request and log result
   const responses = await sessionClient.detectIntent(request);
   console.log('Detected intent');

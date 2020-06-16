@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:covid_tracker/util/speaker.dart';
 import 'package:flutter/material.dart';
 import 'package:covid_tracker/widgets/CircleAvatar.dart';
@@ -8,8 +10,8 @@ class ChatScreen extends StatefulWidget {
   int speakerCursor = 0;
 
   @override
-  _ChatScreenState createState() {
-    _ChatScreenState result = _ChatScreenState();
+  ChatScreenState createState() {
+    ChatScreenState result = ChatScreenState();
     return result;
   }
 
@@ -23,10 +25,10 @@ class ChatScreen extends StatefulWidget {
   }
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class ChatScreenState extends State<ChatScreen> {
   List<MessageTile> _messageTiles = List();
   final _textController = TextEditingController();
-
+  final ScrollController _controller = ScrollController();
   final StateMachineInteraction _stateInteraction = StateMachineInteraction();
 
   Speaker _speaker = Speaker.getInstance();
@@ -42,11 +44,13 @@ class _ChatScreenState extends State<ChatScreen> {
     widget.onLoad(_messageTiles);
   }
 
-  void responseInteraction() async {
+  void responseInteraction({bool overrideChoices = false}) async {
     var msgText = _textController.text;
     // get selected choices
     var userChoices = _messageTiles.last.choices;
-    print(userChoices);
+    if (overrideChoices) {
+      msgText = "These are my symptoms!";
+    }
     // TOOD: handle null submissions
     if (msgText.isNotEmpty) {
       setState(() {
@@ -54,6 +58,7 @@ class _ChatScreenState extends State<ChatScreen> {
             .add(MessageTile(msgText, 'user', DateTime.now(), TileType.USER));
         _textController.clear();
       });
+      _controller.jumpTo(_controller.position.maxScrollExtent);
       // initialise zero state
       MobileState cState = MobileState(
           StateType.TEXT,
@@ -65,7 +70,7 @@ class _ChatScreenState extends State<ChatScreen> {
       try {
         nextState = await _stateInteraction.fetchInteraction(cState);
       } catch (error) {
-        print("Failed to get the response from the server");
+        print("Failed to get the response from the server: " + error.toString());
       }
       if (nextState != null) {
         setState(() {
@@ -78,6 +83,7 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     }
+    _controller.jumpTo(_controller.position.maxScrollExtent);
   }
 
   @override
@@ -96,12 +102,16 @@ class _ChatScreenState extends State<ChatScreen> {
               children: <Widget>[
                 Expanded(
                   child: ListView.builder(
+                    controller: _controller,
+                    reverse: false,
                     padding: const EdgeInsets.all(15),
                     itemCount: _messageTiles.length,
                     itemBuilder: (ctx, i) {
                       if (_messageTiles[i].type == TileType.SYSTEM) {
                         return ReceivedMessagesWidget(
-                            msgTile: _messageTiles[i]);
+                          msgTile: _messageTiles[i],
+                          uberResponseManager: responseInteraction,
+                        );
                       } else {
                         return SentMessageWidget(msgTile: _messageTiles[i]);
                       }
