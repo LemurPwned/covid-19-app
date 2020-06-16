@@ -171,7 +171,7 @@ function onWeatherState(body, dfResponse, res) {
             return
         } else {
             console.log(body)
-            if (body.cod) {
+            if (body.cod == 404) {
                 res.status(body.cod).send(body)
             } else {
                 let weatherText = `Weather in ${city}: ${body["weather"][0]["main"]} -- ${body["weather"][0]["description"]}`
