@@ -38,10 +38,5 @@ class MessageTile {
       print("\n Setting up the location! \n");
       this.marker = LatLng(0.0, 0.0);
     }
-    //   if (st.state == StateType.TWITTER) {
-    //   } else if (st.state == StateType.LOCATION) {
-    //   } else if (st.state == StateType.MULTICHOICE) {
-    //     this.choices = st.messageChoices;
-    //   }
   }
 }

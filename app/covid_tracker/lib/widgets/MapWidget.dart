@@ -9,8 +9,8 @@ import 'package:covid_tracker/globals.dart';
 
 class MapWidget extends StatefulWidget {
   LatLng destinationMarker;
-
-  MapWidget({this.destinationMarker});
+  String hospitalName = "";
+  MapWidget({this.destinationMarker, this.hospitalName});
 
   @override
   State<MapWidget> createState() => MapWidgetState();
@@ -24,7 +24,6 @@ class MapWidgetState extends State<MapWidget> {
   Future<Position> position;
   final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
   final MapController mapController = MapController();
-
   Future<Position> getCurrentLocation() async {
     Position pos = await geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best);
@@ -37,30 +36,32 @@ class MapWidgetState extends State<MapWidget> {
 
     if (this.widget.destinationMarker != null &&
         this.widget.destinationMarker.latitude == 0.0) {
+      var hosp = await findNearestHospital(LatLng(pos.latitude, pos.longitude));
       this.widget.destinationMarker =
-          await findNearestHospital(LatLng(pos.latitude, pos.longitude));
-    } 
+          LatLng(hosp.value['latitude'], hosp.value['longitude']);
+      this.widget.hospitalName = hosp.key.toString();
+    }
 
     return pos;
   }
 
-  Future<LatLng> findNearestHospital(LatLng currentLoc) async {
+  Future<MapEntry<String, dynamic>> findNearestHospital(
+      LatLng currentLoc) async {
     String data = await DefaultAssetBundle.of(context)
         .loadString("assets/full_data.json");
     final jsonResult = json.decode(data);
 
     var smallestDist = 100000000.0;
-    LatLng closest;
-    for (final key in jsonResult.values) {
-      var hospital = LatLng(key['latitude'], key['longitude']);
+    dynamic closest;
+    for (var entry in jsonResult.entries) {
+      var hospital = LatLng(entry.value['latitude'], entry.value['longitude']);
       final distance = Distance();
       var km = distance.as(LengthUnit.Kilometer, currentLoc, hospital);
       if (km < smallestDist) {
         smallestDist = km;
-        closest = hospital;
+        closest = entry;
       }
     }
-
     return closest;
   }
 
@@ -108,19 +109,26 @@ class MapWidgetState extends State<MapWidget> {
       }
     });
 
-    return FlutterMap(
-      options: new MapOptions(
-        center: currentLocation,
-        zoom: 13.0,
-      ),
-      layers: [
-        new TileLayerOptions(
-            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            subdomains: ['a', 'b', 'c']),
-        new MarkerLayerOptions(markers: markerList),
-      ],
-      mapController: mapController,
-    );
+    return Column(children: <Widget>[
+      SizedBox(
+          height: 120,
+          width: 300,
+          child: FlutterMap(
+            options: new MapOptions(
+              center: currentLocation,
+              zoom: 13.0,
+            ),
+            layers: [
+              new TileLayerOptions(
+                  urlTemplate:
+                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  subdomains: ['a', 'b', 'c']),
+              new MarkerLayerOptions(markers: markerList),
+            ],
+            mapController: mapController,
+          )),
+      Text(this.widget.hospitalName == null ? "" : this.widget.hospitalName)
+    ]);
   }
 
   @override

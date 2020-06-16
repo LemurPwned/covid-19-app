@@ -12,6 +12,8 @@ const Actions = {
 
 const Intents = {
     WelcomeIntent: "WelcomeIntent",
+    AfterWelcomeNotWell: "AfterWelcomeNotWell",
+    AfterWelcomeWell: "AfterWelcomeWell",
     NotWellIntent: "NotWellIntent",
     EverythingIsFineIntent: "EverythingIsFineIntent",
     SomethingIsNotFineIntent: "SomethingIsWrongIntnet",
@@ -28,20 +30,10 @@ let allSymptoms = ['fever', 'cough', 'general malaise', 'throat pain',
 const symptomsCSV = './mod_probs_counter.json'
 let modProbsCounter = JSON.parse(fs.readFileSync(symptomsCSV, 'utf8'));
 
-let riskChain = {
-    0: 'high',
-    1: 'normal/undefined',
-    2: 'low'
-}
-
-// let intents = [
-//     "WelcomeIntent",
-//     "None",
-//     "HighFeverIntent",
-//     "WorseFeelingIntent"
-// ]
-
 function formulateState(state, intent, messageText, messageChoices, responseExpected) {
+    /**
+     * Formulates Dialogflow state using the schema defined for the system
+     */
     let responseState = {
         "state": state,
         "intent": intent,
@@ -53,6 +45,9 @@ function formulateState(state, intent, messageText, messageChoices, responseExpe
 }
 
 async function onZeroState(body, dfResponse, res) {
+    /**
+     * This is a default state of the system. 0 state and revert state
+     */
     let responseState = formulateState(
         Actions.Text,
         dfResponse.intent.displayName ? dfResponse.intent.displayName : "None",
@@ -79,7 +74,7 @@ function onYesNoQuestion() {
 
 function onSymptomSelection(mobileRequest, dfResponse, res) {
     /**
-     * Call model here and ask for prob
+     * Call model here and ask for probability given symptoms
      */
     let riskThreshold = 1.1
     // let calculatedRisk = 0.7 // call the model here 
@@ -87,6 +82,7 @@ function onSymptomSelection(mobileRequest, dfResponse, res) {
     let calculatedRisk = model.calculateProbability(
         modProbsCounter, mobileRequest.userInput.choices, 0.1
     ) * 100
+    calculatedRisk = 1.3
 
     if (calculatedRisk > riskThreshold) {
         // high risk
@@ -108,8 +104,9 @@ function onSymptomSelection(mobileRequest, dfResponse, res) {
         // low threshold 
         // normal response 
         let msg = "Fortunately your health is ok!"
-        let responseState =  formulateState(
+        let responseState = formulateState(
             Math.random() > 0.5 ? Actions.Twitter : Actions.Text,
+            Intents.EverythingIsFineIntent,
             msg,
             null,
             false
@@ -120,7 +117,11 @@ function onSymptomSelection(mobileRequest, dfResponse, res) {
 }
 
 function onNotWellIntent(body, dfResponse, res) {
-    const n = 4
+    /**
+     * Upon not well intent from DialogFlow, we ask the user
+     * to provide the subset of symptoms she/he is experiencing.
+     */
+    const n = 6
     const shuffled = allSymptoms.sort(() => 0.5 - Math.random());
     // Get sub-array of first n elements after shuffled
     let selected = shuffled.slice(0, n);
@@ -137,7 +138,10 @@ function onNotWellIntent(body, dfResponse, res) {
 
 
 function onDefaultState(body, dfResponse, res) {
-
+    /**
+     * Default state copies the response from the 
+     * Dialogflow Intent and fullfillments.
+     */
 
     let responseState = formulateState(
         Actions.Text,
@@ -154,7 +158,7 @@ async function uponStateRequest(mobileRequest, res) {
     /**
      *  Mobile request defines a state 
      * and the user response to that state
-     */ 
+     */
     console.log("Processing request!")
     console.log(mobileRequest)
     if (mobileRequest.userInput.choices != null) {
@@ -175,8 +179,9 @@ async function uponStateRequest(mobileRequest, res) {
                 console.log("Not well response")
                 onNotWellIntent(mobileRequest, dfResponse, res)
                 break
-            case Intents.EverythingIsFineIntent:
-                console.log("All fine response")
+            case Intents.AfterWelcomeNotWell:
+                console.log("Not well response")
+                onNotWellIntent(mobileRequest, dfResponse, res)
                 break
             default:
                 onDefaultState(mobileRequest, dfResponse, res)

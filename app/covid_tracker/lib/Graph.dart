@@ -216,8 +216,8 @@ class _CovidGraphState extends State<CovidGraph> {
 
   List<StaggeredTile> _staggeredTiles = const <StaggeredTile>[
     const StaggeredTile.count(4, 4),
-    const StaggeredTile.count(2, 3),
-    const StaggeredTile.count(2, 3),
+    const StaggeredTile.count(2, 2),
+    const StaggeredTile.count(2, 2),
     const StaggeredTile.count(4, 4),
   ];
 
@@ -229,7 +229,7 @@ class _CovidGraphState extends State<CovidGraph> {
           Card(child: timeSeriesBuilder()),
           Card(child: barChartBuilder(["todayCases", "critical"])),
           Card(child: barChartBuilder(["active", "recovered"])),
-          Card(child: SizedBox(height: 350.0, child: TwitterView()))
+          Card(child: TwitterView())
         ],
         mainAxisSpacing: 4.0,
         crossAxisSpacing: 4.0,
