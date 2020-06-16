@@ -69,7 +69,7 @@ class StateMachineInteraction {
   Future<ResponseState> fetchInteraction(MobileState state) async {
     final localState = jsonEncode(state.toJson());
     print(localState);
-    final response = await http.post("http://192.168.0.15:3000/response",
+    final response = await http.post("https://europe-west2-newagent-jqwvxl.cloudfunctions.net/covid-19-backend-server",
         body: localState, headers: {'Content-type': 'application/json'});
 
     print(response);
