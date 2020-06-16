@@ -168,18 +168,22 @@ function onWeatherState(body, dfResponse, res) {
             res.status(404).json({ "error": err });
             return
         } else {
-            let weatherText = `Weather in ${city}: ${body["weather"][0]["main"]} -- ${body["weather"][0]["description"]}`
-            weatherText += `\nTemperature: ${body["main"]["temp"]}F!`
-            console.log(weatherText)
-            let responseState = formulateState(
-                Actions.Text,
-                dfResponse.intent.displayName,
-                weatherText,
-                null,
-                false
-            )
-            res.status(200).set('Content-Type', 'application/json')
-            res.json(responseState)
+            if (body.cod) {
+                res.status(body.cod).send(body)
+            } else {
+                let weatherText = `Weather in ${city}: ${body["weather"][0]["main"]} -- ${body["weather"][0]["description"]}`
+                weatherText += `\nTemperature: ${body["main"]["temp"]}F!`
+                console.log(weatherText)
+                let responseState = formulateState(
+                    Actions.Text,
+                    dfResponse.intent.displayName,
+                    weatherText,
+                    null,
+                    false
+                )
+                res.status(200).set('Content-Type', 'application/json')
+                res.json(responseState)
+            }
         }
     });
 }
