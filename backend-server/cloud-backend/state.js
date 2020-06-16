@@ -82,7 +82,6 @@ function onSymptomSelection(mobileRequest, dfResponse, res) {
     let calculatedRisk = model.calculateProbability(
         modProbsCounter, mobileRequest.userInput.choices, 0.1
     ) * 100
-    calculatedRisk = 1.3
 
     if (calculatedRisk > riskThreshold) {
         // high risk
