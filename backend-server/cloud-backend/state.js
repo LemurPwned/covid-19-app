@@ -1,4 +1,7 @@
 const dfClient = require('./dialogFlowClient')
+const model = require('./algo')
+const fs = require('fs');
+
 
 const Actions = {
     Location: 0,
@@ -9,27 +12,28 @@ const Actions = {
 
 const Intents = {
     WelcomeIntent: "WelcomeIntent",
+    AfterWelcomeNotWell: "AfterWelcomeNotWell",
+    AfterWelcomeWell: "AfterWelcomeWell",
     NotWellIntent: "NotWellIntent",
     EverythingIsFineIntent: "EverythingIsFineIntent",
     SomethingIsNotFineIntent: "SomethingIsWrongIntnet",
 }
 
-let allSymptoms = ["fever", "cough", "pain", "headache", "cold", "backpain"] // example one
-let currentChainState = 0
-let riskChain = {
-    0: 'high',
-    1: 'normal/undefined',
-    2: 'low'
-}
+let allSymptoms = ['fever', 'cough', 'general malaise', 'throat pain',
+    'difficulty in breathing', 'headache', 'chill', 'runny nose',
+    'joint pain', 'cough with sputum', 'diarrhea', 'muscle pain',
+    'pneumonia', 'nausea', 'loss of appetite', 'chest discomfort',
+    'abdominal pain', 'flu', 'respiratory distress', 'heavy head',
+    'thirst', 'whole body pain', 'back pain', 'reflux'] // example one
 
-// let intents = [
-//     "WelcomeIntent",
-//     "None",
-//     "HighFeverIntent",
-//     "WorseFeelingIntent"
-// ]
+
+const symptomsCSV = './mod_probs_counter.json'
+let modProbsCounter = JSON.parse(fs.readFileSync(symptomsCSV, 'utf8'));
 
 function formulateState(state, intent, messageText, messageChoices, responseExpected) {
+    /**
+     * Formulates Dialogflow state using the schema defined for the system
+     */
     let responseState = {
         "state": state,
         "intent": intent,
@@ -41,6 +45,9 @@ function formulateState(state, intent, messageText, messageChoices, responseExpe
 }
 
 async function onZeroState(body, dfResponse, res) {
+    /**
+     * This is a default state of the system. 0 state and revert state
+     */
     let responseState = formulateState(
         Actions.Text,
         dfResponse.intent.displayName ? dfResponse.intent.displayName : "None",
@@ -67,17 +74,22 @@ function onYesNoQuestion() {
 
 function onSymptomSelection(mobileRequest, dfResponse, res) {
     /**
-     * Call model here and ask for prob
+     * Call model here and ask for probability given symptoms
      */
-    let riskThreshold = 0.3
-    let calculatedRisk = 0.7 // call the model here 
+    let riskThreshold = 1.1
+    // let calculatedRisk = 0.7 // call the model here 
+
+    let calculatedRisk = model.calculateProbability(
+        modProbsCounter, mobileRequest.userInput.choices, 0.1
+    ) * 100
+    calculatedRisk = 1.3
 
     if (calculatedRisk > riskThreshold) {
         // high risk
         // agitated response 
         // put the hospital info 
         // some default resonse Fallback
-        let msg = `You are found to be in high risk group! Pr: ${calculatedRisk}\n`
+        let msg = `You are found to be in high risk group! Risk index: ${calculatedRisk.toFixed(3)}\n`
         msg += "This is the closest hospital!"
         let responseState = formulateState(
             Actions.Location,
@@ -92,25 +104,50 @@ function onSymptomSelection(mobileRequest, dfResponse, res) {
         // low threshold 
         // normal response 
         let msg = "Fortunately your health is ok!"
-        return formulateState(
+        let responseState = formulateState(
             Math.random() > 0.5 ? Actions.Twitter : Actions.Text,
+            Intents.EverythingIsFineIntent,
             msg,
             null,
             false
         );
+        res.status(200).set('Content-Type', 'application/json')
+        res.json(responseState)
     }
 }
 
 function onNotWellIntent(body, dfResponse, res) {
-    const n = 4
+    /**
+     * Upon not well intent from DialogFlow, we ask the user
+     * to provide the subset of symptoms she/he is experiencing.
+     */
+    const n = 6
     const shuffled = allSymptoms.sort(() => 0.5 - Math.random());
     // Get sub-array of first n elements after shuffled
     let selected = shuffled.slice(0, n);
     let responseState = formulateState(
         Actions.MultiChoice,
         dfResponse.intent.displayName,
-        dfResponse.fulfillmentText,
+        "Mark your symptoms, confirm with typing in OK.",
         selected,
+        true
+    )
+    res.status(200).set('Content-Type', 'application/json')
+    res.json(responseState)
+}
+
+
+function onDefaultState(body, dfResponse, res) {
+    /**
+     * Default state copies the response from the 
+     * Dialogflow Intent and fullfillments.
+     */
+
+    let responseState = formulateState(
+        Actions.Text,
+        dfResponse.intent.displayName,
+        dfResponse.fulfillmentText,
+        null,
         true
     )
     res.status(200).set('Content-Type', 'application/json')
@@ -122,8 +159,10 @@ async function uponStateRequest(mobileRequest, res) {
      *  Mobile request defines a state 
      * and the user response to that state
      */
-
+    console.log("Processing request!")
+    console.log(mobileRequest)
     if (mobileRequest.userInput.choices != null) {
+        console.log(mobileRequest.userInput.choices)
         onSymptomSelection(mobileRequest, null, res);
     }
     else {
@@ -140,13 +179,13 @@ async function uponStateRequest(mobileRequest, res) {
                 console.log("Not well response")
                 onNotWellIntent(mobileRequest, dfResponse, res)
                 break
-            case Intents.EverythingIsFineIntent:
-                console.log("All fine response")
-                break
-            case Actions.Twitter:
+            case Intents.AfterWelcomeNotWell:
+                console.log("Not well response")
+                onNotWellIntent(mobileRequest, dfResponse, res)
                 break
             default:
-                break
+                onDefaultState(mobileRequest, dfResponse, res)
+                console.log("Default response")
 
         }
     }

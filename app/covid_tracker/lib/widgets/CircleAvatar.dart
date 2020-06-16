@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
 import 'package:covid_tracker/util/MessageTile.dart';
 
-
 final robotUrl =
     'https://www.pinclipart.com/picdir/big/344-3446018_best-whiteboard-video-software-robot-logo-png-clipart.png';
 
@@ -41,29 +40,24 @@ class CustomCircleAvatar extends StatelessWidget {
   }
 }
 
-
-
 class TwitterMessageWidget extends StatefulWidget {
-  @override 
+  @override
   TwitterMessageWidgetState createState() => TwitterMessageWidgetState();
-
 }
 
-class TwitterMessageWidgetState extends State<TwitterMessageWidget>{
-
- @override
+class TwitterMessageWidgetState extends State<TwitterMessageWidget> {
+  @override
   Widget build(BuildContext context) {
     return TwitterView();
   }
-} 
+}
 
 class ReceivedMessagesWidget extends StatefulWidget {
   final MessageTile msgTile;
-
-  const ReceivedMessagesWidget({
-    Key key,
-    @required this.msgTile,
-  }) : super(key: key);
+  final void Function({bool overrideChoices}) uberResponseManager;
+  const ReceivedMessagesWidget(
+      {Key key, @required this.msgTile, this.uberResponseManager})
+      : super(key: key);
 
   @override
   ReceivedMessagesWidgetState createState() => ReceivedMessagesWidgetState();
@@ -100,6 +94,15 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
             },
           ),
         )));
+    widgetList.add(FlatButton(
+      splashColor: Colors.blue,
+      child: Text("Accept symptoms"),
+      onPressed: () {
+        if (this.widget.uberResponseManager != null) {
+          this.widget.uberResponseManager(overrideChoices: true);
+        }
+      },
+    ));
     return widgetList;
   }
 
@@ -114,16 +117,13 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
     }
   }
 
-  List<String> getSelectedChoices(){
+  List<String> getSelectedChoices() {
     return selectedChoices;
   }
 
   Widget locationDirective(LatLng destination) {
     if (destination != null) {
-      return SizedBox(
-          height: 120,
-          width: 300,
-          child: MapWidget(destinationMarker: destination));
+      return MapWidget(destinationMarker: destination);
     } else {
       return SizedBox.shrink();
     }
@@ -139,15 +139,14 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
 
   @override
   Widget build(BuildContext context) {
+    var body22 = Theme.of(context).textTheme.bodyText1;
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 7.0),
         child: Column(
           children: <Widget>[
             Row(
               children: <Widget>[
-                CustomCircleAvatar(
-                  imgUrl: robotUrl,
-                ),
+                CustomCircleAvatar(imgUrl: robotUrl),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -188,10 +187,7 @@ class ReceivedMessagesWidgetState extends State<ReceivedMessagesWidget> {
                 SizedBox(width: 15),
                 Text(
                   currentMsgTile.dateString(),
-                  style: Theme.of(context)
-                      .textTheme
-                      .body2
-                      .apply(color: Colors.grey),
+                  style: body22.apply(color: Colors.grey),
                 ),
               ],
             ),

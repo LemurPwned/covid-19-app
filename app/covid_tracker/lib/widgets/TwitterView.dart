@@ -69,6 +69,7 @@ class _TwitterViewState extends State<TwitterView> {
       this.widget.superiorContnet = tweet;
       return EmbeddedTweetView.fromTweet(tweet);
     }
+    print("Failed to retrieve twitter view");
 
     return SizedBox.shrink();
   }
